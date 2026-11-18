@@ -1,0 +1,3301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<script>(function(){function fmt(a){if(a instanceof Error)return a.message;if(typeof a==="object"&&a!==null){try{return JSON.stringify(a)}catch(e){return String(a)}}return String(a)}function send(t,m,l){try{parent.postMessage({__stc:1,type:t,msg:m,line:l},"*")}catch(e){}}["log","info","warn","error"].forEach(function(m){var o=console[m];console[m]=function(){send(m,Array.prototype.map.call(arguments,fmt).join(" "));if(o)o.apply(console,arguments)}});window.addEventListener("error",function(e){send("error",e.message,e.lineno)});window.addEventListener("unhandledrejection",function(e){send("error","Promise: "+fmt(e.reason))});})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Релиш — Подбор блюд</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #fdfbf7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #2c3e2e;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 760px;
+      background: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(27, 67, 50, 0.08);
+      min-height: 600px;
+      border: 1px solid rgba(45, 106, 79, 0.1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .screen-header {
+      background: #1b4332;
+      color: #fff;
+      padding: 32px 32px 24px;
+      position: relative;
+    }
+    .screen-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #d4af37, #f0d78c, #d4af37);
+    }
+    .screen-header .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .screen-header .logo span {
+      font-size: 18px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      opacity: 0.8;
+    }
+    .screen-header .subtitle {
+      font-size: 13px;
+      opacity: 0.7;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .screen-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 600;
+      margin-top: 14px;
+    }
+
+    .screen-body { padding: 32px; flex: 1; }
+
+    .cart-btn {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: rgba(212, 175, 55, 0.15);
+      color: #d4af37;
+      border: 1.5px solid #d4af37;
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      z-index: 10;
+    }
+    .cart-btn:hover { background: rgba(212, 175, 55, 0.25); }
+    .cart-count {
+      background: #d4af37;
+      color: #1b4332;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; animation: fadeIn 0.4s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .landing-hero {
+      background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+      color: #fff;
+      padding: 48px 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .landing-hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .landing-hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .landing-hero p {
+      font-size: 15px;
+      opacity: 0.85;
+      max-width: 480px;
+      margin: 0 auto 28px;
+      line-height: 1.6;
+      position: relative;
+    }
+    .landing-hero .btn-primary {
+      max-width: 280px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .landing-hero .btn-secondary {
+      max-width: 280px;
+      margin: 12px auto 0;
+      position: relative;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border-color: rgba(255,255,255,0.3);
+    }
+    .landing-hero .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+    .landing-features { padding: 40px 32px 20px; background: #fdfbf7; }
+    .landing-features h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #1b4332;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    .feature-item {
+      background: #fff;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid #eef2f0;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: all 0.3s ease;
+    }
+    .feature-item:hover {
+      box-shadow: 0 8px 24px rgba(27, 67, 50, 0.08);
+      border-color: #d4af37;
+      transform: translateY(-2px);
+    }
+    .feature-icon {
+      font-size: 28px;
+      background: #f4f9f5;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-text h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1b4332;
+      margin-bottom: 4px;
+    }
+    .feature-text p { font-size: 13px; color: #6b7c6f; line-height: 1.5; }
+
+    .admin-access {
+      padding: 24px 32px 32px;
+      background: #fdfbf7;
+      display: flex;
+      justify-content: center;
+    }
+    .admin-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      border: 1.5px solid #e2e8e4;
+      border-radius: 50px;
+      padding: 12px 24px 12px 16px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4a5d4e;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(27, 67, 50, 0.04);
+    }
+    .admin-btn:hover {
+      border-color: #d4af37;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
+      transform: translateY(-2px);
+      color: #1b4332;
+    }
+    .admin-btn-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #1b4332, #2d6a4f);
+      color: #d4af37;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+    .admin-btn:hover .admin-btn-icon {
+      background: linear-gradient(135deg, #d4af37, #f0d78c);
+      color: #1b4332;
+      transform: rotate(-10deg) scale(1.05);
+    }
+    .admin-btn-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      line-height: 1.2;
+    }
+    .admin-btn-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: #9e9e9e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+    .admin-btn-arrow {
+      font-size: 18px;
+      color: #d4af37;
+      transition: transform 0.3s ease;
+      margin-left: 4px;
+    }
+    .admin-btn:hover .admin-btn-arrow { transform: translateX(4px); }
+
+    .chips {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .chip {
+      padding: 14px 10px;
+      border: 1.5px solid #e2e8e4;
+      border-radius: 12px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fff;
+      color: #4a5d4e;
+      user-select: none;
+      text-align: center;
+      font-weight: 500;
+    }
+    .chip:hover { border-color: #2d6a4f; background: #f4f9f5; }
+    .chip.selected {
+      background: #2d6a4f;
+      border-color: #2d6a4f;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(45, 106, 79, 0.2);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 18px;
+      background: #1b4332;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(27, 67, 50, 0.15);
+    }
+    .btn-primary:hover {
+      background: #2d6a4f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(27, 67, 50, 0.25);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 16px;
+      background: transparent;
+      color: #2d6a4f;
+      border: 1.5px solid #2d6a4f;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-secondary:hover { background: #f4f9f5; }
+
+    .param-group { margin-bottom: 28px; }
+    .param-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7c6f;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .spice-row { display: flex; align-items: center; gap: 16px; }
+    .spice-row input[type=range] {
+      flex: 1;
+      accent-color: #2d6a4f;
+      height: 6px;
+      border-radius: 3px;
+    }
+    .spice-label {
+      font-size: 14px;
+      color: #2d6a4f;
+      font-weight: 600;
+      min-width: 90px;
+      text-align: right;
+    }
+    .option-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+    .pill {
+      padding: 10px 20px;
+      border: 1.5px solid #e2e8e4;
+      border-radius: 50px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fff;
+      color: #4a5d4e;
+      font-weight: 500;
+    }
+    .pill:hover { border-color: #2d6a4f; }
+    .pill.selected {
+      background: #f0f7f2;
+      border-color: #2d6a4f;
+      color: #1b4332;
+      font-weight: 600;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1b4332;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dish-card {
+      border: 1.5px solid #eef2f0;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      transition: all 0.3s ease;
+      background: #fff;
+      position: relative;
+    }
+    .dish-card:hover {
+      box-shadow: 0 8px 24px rgba(27, 67, 50, 0.08);
+      border-color: #d4af37;
+      transform: translateY(-2px);
+    }
+    .dish-card-inner { display: flex; gap: 0; }
+    .dish-img {
+      width: 110px;
+      height: 110px;
+      flex-shrink: 0;
+      background: #f4f9f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 44px;
+      border-right: 1.5px solid #eef2f0;
+      overflow: hidden;
+    }
+    .dish-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .dish-info { padding: 16px; flex: 1; position: relative; }
+    .dish-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+      padding-right: 40px;
+    }
+    .dish-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1b4332;
+    }
+    .dish-price { font-size: 16px; font-weight: 700; color: #2d6a4f; }
+    .dish-price-old {
+      font-size: 13px;
+      color: #9e9e9e;
+      text-decoration: line-through;
+      margin-right: 6px;
+      font-weight: 500;
+    }
+    .discount-badge {
+      background: linear-gradient(135deg, #d4af37, #f0d78c);
+      color: #1b4332;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 50px;
+      letter-spacing: 0.3px;
+      margin-right: 6px;
+    }
+    .dish-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: #6b7c6f;
+      margin-bottom: 10px;
+    }
+    .match-badge {
+      display: inline-block;
+      background: #2d6a4f;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 50px;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+    .match-badge.high { background: #1b4332; }
+    .match-badge.mid  { background: #d4af37; color: #1b4332; }
+
+    .kbju-row {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: #6b7c6f;
+      margin-bottom: 10px;
+      background: #f4f9f5;
+      padding: 6px 12px;
+      border-radius: 8px;
+      width: fit-content;
+    }
+    .kbju-row span { font-weight: 600; color: #2d6a4f; }
+
+    .ingredients-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ing-tag {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 50px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .ing-tag.match { background: #e8f5e9; color: #2e7d32; }
+    .ing-tag.nomatch { background: #f5f5f5; color: #9e9e9e; }
+
+    .add-cart-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #f4f9f5;
+      color: #2d6a4f;
+      border: 1.5px solid #c8e6c9;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-weight: 700;
+      z-index: 2;
+    }
+    .add-cart-btn:hover {
+      background: #2d6a4f;
+      color: #fff;
+      border-color: #2d6a4f;
+      transform: scale(1.1);
+    }
+    .add-cart-btn.added { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
+    .add-cart-btn.remove-mode {
+      background: #fff0f0;
+      color: #c62828;
+      border-color: #ffcdd2;
+    }
+    .add-cart-btn.remove-mode:hover {
+      background: #c62828;
+      color: #fff;
+      border-color: #c62828;
+    }
+
+    .details-btn {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: #f4f9f5;
+      color: #2d6a4f;
+      border: 1px solid #c8e6c9;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      z-index: 2;
+    }
+    .details-btn:hover {
+      background: #2d6a4f;
+      color: #fff;
+      border-color: #2d6a4f;
+    }
+
+    .drink-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: 1.5px solid #eef2f0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      background: #fff;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .drink-card:hover {
+      border-color: #d4af37;
+      box-shadow: 0 4px 12px rgba(27, 67, 50, 0.05);
+    }
+    .drink-icon {
+      font-size: 28px;
+      width: 48px;
+      height: 48px;
+      background: #f4f9f5;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .drink-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .drink-name { font-size: 15px; font-weight: 600; color: #1b4332; }
+    .drink-price { font-size: 14px; color: #6b7c6f; }
+    .drink-match { font-size: 13px; color: #2d6a4f; font-weight: 700; margin-left: auto; }
+
+    .why-block {
+      background: #f4f9f5;
+      border-left: 4px solid #d4af37;
+      border-radius: 0 12px 12px 0;
+      padding: 18px 20px;
+      margin-top: 24px;
+      font-size: 14px;
+      color: #4a5d4e;
+      line-height: 1.7;
+    }
+    .why-block strong { color: #1b4332; }
+
+    .feedback-container { text-align: center; padding: 20px 0; }
+    .feedback-icon { font-size: 56px; margin-bottom: 16px; }
+    .feedback-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      color: #1b4332;
+      margin-bottom: 8px;
+    }
+    .feedback-sub {
+      font-size: 15px;
+      color: #6b7c6f;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .stars { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
+    .star {
+      font-size: 32px;
+      cursor: pointer;
+      color: #e2e8e4;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .star:hover, .star.active { color: #d4af37; transform: scale(1.1); }
+    .feedback-textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid #e2e8e4;
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      resize: vertical;
+      min-height: 100px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 20px;
+      color: #1b4332;
+    }
+    .feedback-textarea:focus {
+      border-color: #2d6a4f;
+      box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+    }
+
+    .menu-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      border-bottom: 1.5px solid #eef2f0;
+    }
+    .menu-tab {
+      padding: 12px 20px;
+      background: transparent;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #6b7c6f;
+      font-family: 'Inter', sans-serif;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      margin-bottom: -1.5px;
+    }
+    .menu-tab.active { color: #1b4332; border-bottom-color: #d4af37; }
+    .menu-tab:hover { color: #1b4332; }
+
+    #cart-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(27, 67, 50, 0.6);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+      padding: 20px;
+    }
+    #cart-modal.visible { display: flex; }
+
+    .cart-modal-content {
+      background: #fff;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .cart-header {
+      background: #1b4332;
+      color: #fff;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #d4af37;
+    }
+    .cart-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .cart-close {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .cart-close:hover { background: rgba(255,255,255,0.3); }
+
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 24px;
+    }
+    .cart-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7c6f;
+      font-size: 15px;
+    }
+    .cart-empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+      position: relative;
+    }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-item-icon {
+      font-size: 26px;
+      background: #f4f9f5;
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .cart-item-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cart-item-info { flex: 1; min-width: 0; }
+    .cart-item-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1b4332;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cart-item-price { font-size: 13px; color: #6b7c6f; display: flex; align-items: center; gap: 6px; }
+    .cart-item-price-old {
+      font-size: 12px;
+      color: #9e9e9e;
+      text-decoration: line-through;
+    }
+    .cart-item-discount {
+      background: linear-gradient(135deg, #d4af37, #f0d78c);
+      color: #1b4332;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 50px;
+    }
+
+    .cart-item-qty {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 8px;
+    }
+    .qty-btn {
+      background: #f4f9f5;
+      color: #2d6a4f;
+      border: 1.5px solid #c8e6c9;
+      border-radius: 8px;
+      width: 30px;
+      height: 30px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .qty-btn:hover { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
+    .qty-num {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1b4332;
+      min-width: 24px;
+      text-align: center;
+      padding: 0 4px;
+    }
+    .cart-item-remove {
+      background: transparent;
+      color: #c62828;
+      border: 1.5px solid transparent;
+      font-size: 16px;
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-left: 6px;
+    }
+    .cart-item-remove:hover {
+      background: #fff0f0;
+      border-color: #ffcdd2;
+    }
+
+    .cart-footer {
+      padding: 20px 24px;
+      border-top: 1.5px solid #eef2f0;
+      background: #fdfbf7;
+    }
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1b4332;
+    }
+    .cart-total-price {
+      font-size: 22px;
+      color: #2d6a4f;
+      font-family: 'Playfair Display', serif;
+    }
+
+    #dish-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(27, 67, 50, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9997;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    #dish-modal.visible { display: flex; }
+
+    .dish-modal-content {
+      background: #fff;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 520px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+      animation: dishModalIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      position: relative;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+    }
+    @keyframes dishModalIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .dish-modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255,255,255,0.9);
+      color: #1b4332;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 5;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-weight: 700;
+    }
+    .dish-modal-close:hover {
+      background: #1b4332;
+      color: #fff;
+      transform: rotate(90deg);
+    }
+
+    .dish-modal-hero {
+      width: 100%;
+      height: 280px;
+      background: linear-gradient(135deg, #f4f9f5, #e8f5e9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 120px;
+      flex-shrink: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .dish-modal-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .dish-modal-hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: linear-gradient(to top, rgba(255,255,255,0.9), transparent);
+      pointer-events: none;
+    }
+
+    .dish-modal-body { padding: 24px 28px 28px; overflow-y: auto; flex: 1; }
+
+    .dish-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .dish-modal-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #1b4332;
+      line-height: 1.2;
+    }
+    .dish-modal-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #2d6a4f;
+      white-space: nowrap;
+    }
+
+    .dish-modal-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .dish-modal-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      background: #f4f9f5;
+      color: #2d6a4f;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .dish-modal-tag.special {
+      background: linear-gradient(135deg, #d4af37, #f0d78c);
+      color: #1b4332;
+    }
+
+    .dish-modal-section { margin-bottom: 20px; }
+    .dish-modal-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #6b7c6f;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .dish-modal-kbju {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .kbju-card {
+      background: #f4f9f5;
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .kbju-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1b4332;
+      line-height: 1.1;
+    }
+    .kbju-label {
+      font-size: 11px;
+      color: #6b7c6f;
+      font-weight: 600;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .dish-modal-ingredients { display: flex; flex-wrap: wrap; gap: 8px; }
+    .dish-modal-ing {
+      padding: 7px 14px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .dish-modal-actions { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+    .dish-modal-qty {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f4f9f5;
+      border-radius: 12px;
+      padding: 4px;
+    }
+    .dish-modal-qty-btn {
+      width: 40px;
+      height: 40px;
+      background: #fff;
+      color: #2d6a4f;
+      border: 1.5px solid #c8e6c9;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .dish-modal-qty-btn:hover { background: #2d6a4f; color: #fff; }
+    .dish-modal-qty-num {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1b4332;
+      min-width: 32px;
+      text-align: center;
+    }
+    .dish-modal-add-btn {
+      flex: 1;
+      padding: 16px;
+      background: #1b4332;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .dish-modal-add-btn:hover {
+      background: #2d6a4f;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(27, 67, 50, 0.2);
+    }
+    .dish-modal-add-btn.in-cart {
+      background: #fff0f0;
+      color: #c62828;
+      border: 1.5px solid #ffcdd2;
+    }
+    .dish-modal-add-btn.in-cart:hover {
+      background: #c62828;
+      color: #fff;
+      border-color: #c62828;
+      box-shadow: 0 6px 16px rgba(198, 40, 40, 0.2);
+    }
+
+    #admin-panel {
+      display: none;
+      background: #fdfbf7;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    #admin-panel.active { display: block; }
+
+    .admin-header {
+      background: #1b4332;
+      color: #fff;
+      padding: 24px 28px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 4px solid #d4af37;
+    }
+    .admin-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .admin-back {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .admin-back:hover { background: rgba(255,255,255,0.2); }
+
+    .admin-tabs { display: flex; gap: 12px; margin-bottom: 24px; }
+    .tab-btn {
+      flex: 1;
+      padding: 14px;
+      border: 1.5px solid #e2e8e4;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #6b7c6f;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .tab-btn.active { background: #2d6a4f; border-color: #2d6a4f; color: #fff; }
+
+    .admin-list { margin-bottom: 24px; }
+    .admin-item {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      border: 1px solid #eef2f0;
+      gap: 12px;
+    }
+    .admin-item-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: #f4f9f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .admin-item-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .admin-item-info { flex: 1; }
+    .admin-item-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #1b4332;
+    }
+    .admin-item-meta { font-size: 13px; color: #6b7c6f; margin-top: 4px; }
+    .admin-item-badge {
+      background: linear-gradient(135deg, #d4af37, #f0d78c);
+      color: #1b4332;
+      border: none;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 50px;
+      margin-top: 6px;
+      display: inline-block;
+      font-weight: 700;
+    }
+    .admin-item-badge.discount {
+      background: linear-gradient(135deg, #2d6a4f, #43a047);
+      color: #fff;
+      margin-left: 6px;
+    }
+    .admin-actions { display: flex; gap: 8px; }
+    .btn-edit, .btn-del {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-edit { background: #e8f5e9; color: #2e7d32; }
+    .btn-edit:hover { background: #c8e6c9; }
+    .btn-del  { background: #fff0f0; color: #c62828; }
+    .btn-del:hover { background: #ffcdd2; }
+
+    .admin-form {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+      border: 1px solid #eef2f0;
+    }
+    .admin-form h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #1b4332;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7c6f;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #e2e8e4;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: 'Inter', sans-serif;
+      color: #1b4332;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: #2d6a4f;
+      box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .checkbox-row { display: flex; align-items: center; gap: 10px; }
+    .checkbox-row input[type=checkbox] { width: 18px; height: 18px; accent-color: #2d6a4f; }
+    .checkbox-row label {
+      font-size: 15px;
+      color: #1b4332;
+      text-transform: none;
+      font-weight: 500;
+      margin-bottom: 0;
+    }
+    .btn-add {
+      background: #2d6a4f;
+      color: #fff;
+      border: none;
+      padding: 16px 24px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 8px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-add:hover { background: #1b4332; }
+
+    .photo-upload-area { display: flex; gap: 16px; align-items: flex-start; }
+    .photo-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 12px;
+      background: #f4f9f5;
+      border: 1.5px dashed #c8e6c9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      flex-shrink: 0;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .photo-preview.has-image { border-style: solid; border-color: #2d6a4f; }
+    .photo-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo-controls { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .photo-tabs {
+      display: flex;
+      gap: 6px;
+      background: #f4f9f5;
+      border-radius: 8px;
+      padding: 3px;
+    }
+    .photo-tab {
+      flex: 1;
+      padding: 7px 10px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #6b7c6f;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .photo-tab.active {
+      background: #fff;
+      color: #1b4332;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    .photo-tab:hover:not(.active) { color: #1b4332; }
+    .photo-input-panel { display: none; }
+    .photo-input-panel.active { display: block; }
+    .file-upload-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: #f4f9f5;
+      border: 1.5px dashed #c8e6c9;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2d6a4f;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .file-upload-btn:hover { background: #e8f5e9; border-color: #2d6a4f; }
+    .file-upload-btn input[type=file] { display: none; }
+
+    .discount-field {
+      background: linear-gradient(135deg, #fef9e7, #fdf3d0);
+      border: 1.5px dashed #d4af37;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      transition: all 0.2s;
+    }
+    .discount-field.active {
+      border-style: solid;
+      background: linear-gradient(135deg, #fffdf5, #fef9e7);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+    }
+    .discount-field-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #8a6d1b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .discount-field input[type=range] {
+      width: 100%;
+      accent-color: #d4af37;
+      height: 6px;
+      border-radius: 3px;
+      margin-bottom: 8px;
+    }
+    .discount-field-value {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #6b7c6f;
+      font-weight: 600;
+    }
+    .discount-field-value strong {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: #d4af37;
+      font-weight: 700;
+    }
+    .discount-field-hint {
+      font-size: 11px;
+      color: #9e9e9e;
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    .progress { display: flex; justify-content: center; gap: 8px; padding: 16px; }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #e2e8e4;
+      transition: background 0.3s;
+    }
+    .dot.active { background: #d4af37; }
+
+    @media (max-width: 800px) { body { padding: 12px; } }
+    @media (max-width: 520px) {
+      body { padding: 0; align-items: flex-start; }
+      .app { border-radius: 0; min-height: 100vh; border: none; }
+      .screen-body { padding: 24px 20px; }
+      .chips { grid-template-columns: repeat(2, 1fr); }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .landing-hero h1 { font-size: 26px; }
+      .cart-btn { top: 16px; right: 16px; padding: 6px 12px; font-size: 13px; }
+      .photo-upload-area { flex-direction: column; align-items: center; }
+      .photo-controls { width: 100%; }
+      .dish-modal-hero { height: 200px; font-size: 90px; }
+      .dish-modal-name { font-size: 22px; }
+      .dish-modal-price { font-size: 20px; }
+      .dish-modal-kbju { grid-template-columns: repeat(2, 1fr); }
+      .dish-modal-actions { flex-direction: column; align-items: stretch; }
+      .dish-modal-qty { justify-content: center; }
+      .qty-btn { width: 26px; height: 26px; font-size: 14px; }
+    }
+
+    /* ══════════ СКРЭТЧ-ЛОТЕРЕЯ ══════════ */
+    #scratch-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(27, 67, 50, 0.9);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    #scratch-overlay.visible { opacity: 1; pointer-events: all; }
+
+    .scratch-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .scratch-hint {
+      color: rgba(255,255,255,0.9);
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .scratch-card {
+      width: 320px;
+      height: 200px;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .scratch-prize {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #1b4332, #2d6a4f, #d4af37);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-align: center;
+      padding: 20px;
+    }
+    .scratch-prize .prize-main {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .scratch-prize .prize-sub { font-size: 14px; color: rgba(255,255,255,0.9); }
+    .scratch-prize .prize-price { font-size: 16px; color: #d4af37; font-weight: 700; }
+
+    #scratch-canvas {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      transition: opacity 0.5s ease;
+      border-radius: 20px;
+      touch-action: none;
+    }
+
+    #claim-btn {
+      background: #d4af37;
+      color: #1b4332;
+      border: none;
+      border-radius: 30px;
+      padding: 16px 36px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
+      white-space: nowrap;
+      font-family: 'Inter', sans-serif;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      display: none;
+    }
+    #claim-btn.visible {
+      display: block;
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0);
+      animation: claimPulse 1.5s ease-in-out infinite;
+    }
+    #claim-btn:hover {
+      background: #f0d78c;
+      transform: scale(1.05);
+    }
+
+    @keyframes claimPulse {
+      0%, 100% { box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5); }
+      50% { box-shadow: 0 8px 36px rgba(212, 175, 55, 0.95); }
+    }
+
+    .scratch-close {
+      position: absolute;
+      top: -46px;
+      right: 0;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 10;
+    }
+    .scratch-close:hover { background: rgba(255,255,255,0.3); }
+  </style>
+</head>
+<body>
+
+<div class="app" id="guest-app">
+
+  <button class="cart-btn" data-action="open-cart" id="cart-btn" style="display:none;">
+    🛒 Корзина
+    <span class="cart-count" id="cart-count">0</span>
+  </button>
+
+  <div class="screen active" id="screen0">
+    <div class="landing-hero">
+      <h1>Вкус начинается<br>с твоих предпочтений</h1>
+      <p>Используйте Релиш — наш персональный помощник в выборе блюд и напитков специально для вас.</p>
+      <button class="btn-primary" data-action="go" data-screen="1">Подобрать блюдо</button>
+      <button class="btn-secondary" data-action="go" data-screen="6">Посмотреть меню ресторана</button>
+    </div>
+   
+
+    <div class="admin-access">
+      <button class="admin-btn" data-action="admin">
+        <span class="admin-btn-icon">🔐</span>
+        <span class="admin-btn-text">
+          <span>Войти как администратор</span>
+          <span class="admin-btn-sub">Управление меню ресторана</span>
+        </span>
+        <span class="admin-btn-arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen1">
+    <div class="screen-header">
+      <div class="logo">Релиш <span>⋮</span></div>
+      <div class="subtitle">Больше, чем просто меню</div>
+      <h2>Что вы хотели бы увидеть в блюде?</h2>
+    </div>
+    <div class="screen-body">
+      <div class="chips" id="ingredient-chips"></div>
+      <button class="btn-primary" data-action="go" data-screen="2">Далее →</button>
+      <button class="btn-secondary" data-action="go" data-screen="0">← На главную</button>
+    </div>
+    <div class="progress">
+      <div class="dot"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen2">
+    <div class="screen-header">
+      <div class="logo">Релиш <span>⋮</span></div>
+      <div class="subtitle">Шаг 2 из 3</div>
+      <h2>Настройте предпочтения</h2>
+    </div>
+    <div class="screen-body">
+      <div class="param-group">
+        <div class="param-label">🌶 Острота</div>
+        <div class="spice-row">
+          <input type="range" min="0" max="3" value="0" id="spice-slider">
+          <div class="spice-label" id="spice-label">Не остро</div>
+        </div>
+      </div>
+      <div class="param-group">
+        <div class="param-label">🥣 Соус</div>
+        <div class="option-pills" id="sauce-pills">
+          <div class="pill selected" data-group="sauce">Без соуса</div>
+          <div class="pill" data-group="sauce">Сливочный</div>
+          <div class="pill" data-group="sauce">Томатный</div>
+          <div class="pill" data-group="sauce">Сырный</div>
+          <div class="pill" data-group="sauce">Острый</div>
+        </div>
+      </div>
+      <div class="param-group">
+        <div class="param-label">⏱ Время готовки</div>
+        <div class="option-pills" id="time-pills">
+          <div class="pill selected" data-group="time">Не важно</div>
+          <div class="pill" data-group="time">До 10 мин</div>
+          <div class="pill" data-group="time">10–20 мин</div>
+          <div class="pill" data-group="time">20+ мин</div>
+        </div>
+      </div>
+      <div class="param-group">
+        <div class="param-label">🥤 Напиток</div>
+        <div class="option-pills" id="drink-pills">
+          <div class="pill selected" data-group="drink">Не важно</div>
+          <div class="pill" data-group="drink">Горячий</div>
+          <div class="pill" data-group="drink">Холодный</div>
+          <div class="pill" data-group="drink">С алкоголем</div>
+          <div class="pill" data-group="drink">Без алкоголя</div>
+        </div>
+      </div>
+      <button class="btn-primary" data-action="results">Подобрать блюдо 🔍</button>
+      <button class="btn-secondary" data-action="go" data-screen="1">← Назад</button>
+    </div>
+    <div class="progress">
+      <div class="dot"></div><div class="dot"></div><div class="dot active"></div><div class="dot"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen3">
+    <div class="screen-header">
+      <div class="logo">Релиш <span>⋮</span></div>
+      <div class="subtitle">Подбор завершён</div>
+      <h2>Ваши рекомендации</h2>
+    </div>
+    <div class="screen-body" id="results-body"></div>
+    <div class="progress">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot active"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen4">
+    <div class="screen-header">
+      <div class="logo">Релиш <span>⋮</span></div>
+      <div class="subtitle">Особое предложение</div>
+    </div>
+    <div class="screen-body">
+      <div class="surprise-card">
+        <div class="surprise-icon">👨‍🍳</div>
+        <div class="surprise-title">Шеф-сюрприз</div>
+        <div class="surprise-name">Утиная грудка с трюфелем</div>
+        <div class="surprise-desc">Шеф уже выбрал для вас особенное блюдо. Попробуйте — это подарок от нашего ресторана.</div>
+        <div class="surprise-tag">⭐ Блюдо дня</div>
+      </div>
+      <button class="btn-primary" data-action="alert-surprise">Принять сюрприз</button>
+      <button class="btn-secondary" data-action="go" data-screen="1">← Вернуться к выбору</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen5">
+    <div class="screen-header">
+      <div class="logo">Релиш <span>⋮</span></div>
+      <div class="subtitle">Ваше мнение важно</div>
+      <h2>Оставьте отзыв</h2>
+    </div>
+    <div class="screen-body">
+      <div class="feedback-container">
+        <div class="feedback-icon">💬</div>
+        <div class="feedback-title">Как вам подбор?</div>
+        <div class="feedback-sub">Поделитесь впечатлениями, чтобы мы стали еще лучше</div>
+        <div class="stars" id="star-rating">
+          <span class="star" data-val="1">★</span>
+          <span class="star" data-val="2">★</span>
+          <span class="star" data-val="3">★</span>
+          <span class="star" data-val="4">★</span>
+          <span class="star" data-val="5">★</span>
+        </div>
+        <textarea class="feedback-textarea" id="feedback-text" placeholder="Расскажите, что понравилось или что можно улучшить..."></textarea>
+        <button class="btn-primary" data-action="feedback">Отправить отзыв</button>
+        <button class="btn-secondary" data-action="go" data-screen="0">← На главную</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen6">
+    <div class="screen-header">
+      <div class="logo">Релиш <span>⋮</span></div>
+      <div class="subtitle">Полное меню ресторана</div>
+      <h2>Выберите блюда и напитки</h2>
+    </div>
+    <div class="screen-body">
+      <div class="menu-tabs">
+        <button class="menu-tab active" data-action="menu-tab" data-tab="dishes">🍽 Блюда</button>
+        <button class="menu-tab" data-action="menu-tab" data-tab="drinks">🥤 Напитки</button>
+      </div>
+      <div id="menu-content"></div>
+      <button class="btn-secondary" style="margin-top:20px;" data-action="go" data-screen="0">← На главную</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="dish-modal">
+  <div class="dish-modal-content" id="dish-modal-content"></div>
+</div>
+
+<div id="cart-modal">
+  <div class="cart-modal-content">
+    <div class="cart-header">
+      <h3>🛒 Ваша корзина</h3>
+      <button class="cart-close" data-action="close-cart">×</button>
+    </div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-footer" id="cart-footer" style="display:none;">
+      <div class="cart-total">
+        <span>Итого:</span>
+        <span class="cart-total-price" id="cart-total-price">0 ₽</span>
+      </div>
+      <button class="btn-primary" data-action="checkout">Оформить заказ</button>
+    </div>
+  </div>
+</div>
+
+<div id="admin-panel">
+  <div class="admin-header">
+    <div>
+      <div style="font-size:13px;opacity:.7;margin-bottom:6px;letter-spacing:1px;">Релиш — Управление</div>
+      <h1>Админ-панель</h1>
+    </div>
+    <button class="admin-back" data-action="admin-close">← Гость</button>
+  </div>
+
+  <div class="admin-tabs">
+    <button class="tab-btn active" data-action="tab" data-tab="dishes">🍽 Блюда</button>
+    <button class="tab-btn" data-action="tab" data-tab="drinks">🥤 Напитки</button>
+  </div>
+
+  <div id="tab-dishes">
+    <div class="admin-list" id="dishes-list"></div>
+    <div class="admin-form">
+      <h3 id="dish-form-title">+ Добавить блюдо</h3>
+      <input type="hidden" id="dish-edit-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Название</label>
+          <input type="text" id="dish-name" placeholder="Карбонара">
+        </div>
+        <div class="form-group">
+          <label>Цена (₽)</label>
+          <input type="number" id="dish-price" placeholder="590">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Фото блюда</label>
+        <div class="photo-upload-area">
+          <div class="photo-preview" id="dish-photo-preview">🍽</div>
+          <div class="photo-controls">
+            <div class="photo-tabs">
+              <button type="button" class="photo-tab active" data-photo-tab="emoji" data-target="dish">Эмодзи</button>
+              <button type="button" class="photo-tab" data-photo-tab="url" data-target="dish">Ссылка</button>
+              <button type="button" class="photo-tab" data-photo-tab="file" data-target="dish">Файл</button>
+            </div>
+            <div class="photo-input-panel active" data-photo-panel="emoji" data-target="dish">
+              <input type="text" id="dish-photo-emoji" placeholder="🍝" maxlength="4" value="🍽">
+            </div>
+            <div class="photo-input-panel" data-photo-panel="url" data-target="dish">
+              <input type="text" id="dish-photo-url" placeholder="https://example.com/photo.jpg">
+            </div>
+            <div class="photo-input-panel" data-photo-panel="file" data-target="dish">
+              <label class="file-upload-btn">
+                📷 Выбрать файл с компьютера
+                <input type="file" id="dish-photo-file" accept="image/*">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Ингредиенты (через запятую)</label>
+        <input type="text" id="dish-ingredients" placeholder="Паста, Сыр, Курица">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Время готовки</label>
+          <select id="dish-time">
+            <option>До 10 мин</option>
+            <option>10–20 мин</option>
+            <option selected>20+ мин</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Острота (0–3)</label>
+          <select id="dish-spice">
+            <option value="0">0 — Не остро</option>
+            <option value="1">1 — Слегка</option>
+            <option value="2">2 — Остро</option>
+            <option value="3">3 — Очень остро</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Тип соуса</label>
+        <select id="dish-sauce">
+          <option>Без соуса</option>
+          <option>Сливочный</option>
+          <option>Томатный</option>
+          <option>Сырный</option>
+          <option>Острый</option>
+        </select>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Ккал</label>
+          <input type="number" id="dish-kcal" placeholder="450">
+        </div>
+        <div class="form-group">
+          <label>Белки (г)</label>
+          <input type="number" id="dish-protein" placeholder="25">
+        </div>
+        <div class="form-group">
+          <label>Жиры (г)</label>
+          <input type="number" id="dish-fat" placeholder="15">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Углеводы (г)</label>
+          <input type="number" id="dish-carbs" placeholder="40">
+        </div>
+        <div class="form-group" style="display:flex; align-items:flex-end; padding-bottom:8px;">
+          <div class="checkbox-row">
+            <input type="checkbox" id="dish-special">
+            <label for="dish-special">⭐ Блюдо дня</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="discount-field" id="dish-discount-field" style="display:none;">
+        <div class="discount-field-label">🎁 Скидка для скрэтч-лотереи</div>
+        <input type="range" id="dish-discount" min="5" max="50" step="5" value="15">
+        <div class="discount-field-value">
+          <span>Гость сможет получить скидку:</span>
+          <strong id="dish-discount-value">15%</strong>
+        </div>
+        <div class="discount-field-hint">Скидка появится в скрэтч-лотерее для этого блюда дня</div>
+      </div>
+
+      <button class="btn-add" data-action="save-dish">Сохранить блюдо</button>
+    </div>
+  </div>
+
+  <div id="tab-drinks" style="display:none;">
+    <div class="admin-list" id="drinks-list"></div>
+    <div class="admin-form">
+      <h3 id="drink-form-title">+ Добавить напиток</h3>
+      <input type="hidden" id="drink-edit-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Название</label>
+          <input type="text" id="drink-name" placeholder="Латте">
+        </div>
+        <div class="form-group">
+          <label>Цена (₽)</label>
+          <input type="number" id="drink-price" placeholder="280">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Фото напитка</label>
+        <div class="photo-upload-area">
+          <div class="photo-preview" id="drink-photo-preview">🥤</div>
+          <div class="photo-controls">
+            <div class="photo-tabs">
+              <button type="button" class="photo-tab active" data-photo-tab="emoji" data-target="drink">Эмодзи</button>
+              <button type="button" class="photo-tab" data-photo-tab="url" data-target="drink">Ссылка</button>
+              <button type="button" class="photo-tab" data-photo-tab="file" data-target="drink">Файл</button>
+            </div>
+            <div class="photo-input-panel active" data-photo-panel="emoji" data-target="drink">
+              <input type="text" id="drink-photo-emoji" placeholder="☕" maxlength="4" value="🥤">
+            </div>
+            <div class="photo-input-panel" data-photo-panel="url" data-target="drink">
+              <input type="text" id="drink-photo-url" placeholder="https://example.com/photo.jpg">
+            </div>
+            <div class="photo-input-panel" data-photo-panel="file" data-target="drink">
+              <label class="file-upload-btn">
+                📷 Выбрать файл с компьютера
+                <input type="file" id="drink-photo-file" accept="image/*">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Температура</label>
+          <select id="drink-temp">
+            <option>Горячий</option>
+            <option>Холодный</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Алкоголь</label>
+          <select id="drink-alcohol">
+            <option value="0">Без алкоголя</option>
+            <option value="1">С алкоголем</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Ингредиенты (для совпадения)</label>
+        <input type="text" id="drink-ingredients" placeholder="Молоко, Кофе">
+      </div>
+      <button class="btn-add" data-action="save-drink">Сохранить напиток</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════
+//  DATA
+// ════════════════════════════════
+let dishes = [
+  { id:1, name:'Карбонара',       price:590,  photo:'🍝', ingredients:['Паста','Сыр','Курица'],          time:'20+ мин',  spice:0, sauce:'Сливочный', special:false, discount:0,  kbju:{kcal:550, protein:25, fat:22, carbs:60} },
+  { id:2, name:'Пицца Маргарита', price:480,  photo:'🍕', ingredients:['Тесто','Сыр','Овощи'],           time:'20+ мин',  spice:0, sauce:'Томатный',  special:false, discount:0,  kbju:{kcal:600, protein:20, fat:18, carbs:80} },
+  { id:3, name:'Стейк Рибай',     price:1290, photo:'🥩', ingredients:['Мясо'],                          time:'20+ мин',  spice:1, sauce:'Без соуса', special:true,  discount:15, kbju:{kcal:800, protein:60, fat:55, carbs:5}  },
+  { id:4, name:'Том Ям',          price:650,  photo:'🍲', ingredients:['Рыба','Грибы','Овощи'],          time:'10–20 мин',spice:3, sauce:'Острый',    special:false, discount:0,  kbju:{kcal:320, protein:28, fat:12, carbs:25} },
+  { id:5, name:'Ризотто с грибами',price:540, photo:'🍚', ingredients:['Рис','Грибы','Сыр'],             time:'20+ мин',  spice:0, sauce:'Сливочный', special:false, discount:0,  kbju:{kcal:480, protein:14, fat:16, carbs:65} },
+  { id:6, name:'Греческий салат', price:320,  photo:'🥗', ingredients:['Овощи','Сыр'],                   time:'До 10 мин',spice:0, sauce:'Без соуса', special:false, discount:0,  kbju:{kcal:250, protein:8,  fat:18, carbs:12} },
+  { id:7, name:'Утиная грудка',   price:980,  photo:'🦆', ingredients:['Мясо','Овощи'],                  time:'20+ мин',  spice:1, sauce:'Сливочный', special:true,  discount:20, kbju:{kcal:700, protein:45, fat:50, carbs:10} },
+];
+
+let drinks = [
+  { id:1, name:'Латте',          price:280, photo:'☕', temp:'Горячий',   alcohol:false, ingredients:['Молоко','Кофе'] },
+  { id:2, name:'Лимонад',        price:220, photo:'🥤', temp:'Холодный',  alcohol:false, ingredients:['Лимон','Сахар'] },
+  { id:3, name:'Бокал Каберне',  price:450, photo:'🍷', temp:'Холодный',  alcohol:true,  ingredients:['Виноград'] },
+  { id:4, name:'Американо',      price:200, photo:'☕', temp:'Горячий',   alcohol:false, ingredients:['Кофе'] },
+];
+
+let nextDishId = 8;
+let nextDrinkId = 5;
+
+let selectedIngredients = [];
+let selectedSpice = 0;
+let selectedSauce = 'Без соуса';
+let selectedTime = 'Не важно';
+let selectedDrink = 'Не важно';
+let selectedRating = 0;
+
+let cart = [];
+let currentMenuTab = 'dishes';
+
+let currentDishModal = null;
+let currentDishModalQty = 1;
+
+let discountedDishes = {};
+let scratchPendingDishId = null;
+
+function getDishPrice(dish) {
+  if (!dish) return 0;
+  const discount = discountedDishes[dish.id];
+  if (discount && dish.special) return Math.round(dish.price * (1 - discount / 100));
+  return dish.price;
+}
+
+let photoMode = { dish: 'emoji', drink: 'emoji' };
+let currentPhoto = { dish: null, drink: null };
+
+const spiceLabels = ['Не остро','Слегка','Остро','Очень остро'];
+
+const ingredientEmoji = {
+  'Мясо':'🥩', 'Рыба':'🐟', 'Курица':'🍗', 'Овощи':'🥦', 'Сыр':'🧀',
+  'Грибы':'🍄', 'Тесто':'🫓', 'Рис':'🍚', 'Паста':'🍝',
+  'Молоко':'🥛', 'Кофе':'☕', 'Лимон':'🍋', 'Сахар':'🍬', 'Виноград':'🍇',
+  'Томат':'🍅', 'Помидор':'🍅', 'Огурец':'🥒', 'Лук':'🧅', 'Чеснок':'🧄',
+  'Морковь':'🥕', 'Картофель':'🥔', 'Перец':'🌶', 'Бекон':'🥓', 'Ветчина':'🍖',
+  'Креветки':'🦐', 'Лосось':'🐟', 'Тунец':'🐟', 'Авокадо':'🥑', 'Банан':'🍌',
+  'Яблоко':'🍎', 'Клубника':'🍓', 'Шоколад':'🍫', 'Мёд':'🍯', 'Орехи':'🥜',
+  'Сливки':'🥛', 'Масло':'🧈', 'Мука':'🌾', 'Яйцо':'🥚', 'Яйца':'🥚',
+  'Специи':'🌿', 'Зелень':'🌿', 'Базилик':'🌿', 'Укроп':'🌿',
+  'Моцарелла':'🧀', 'Пармезан':'🧀', 'Фета':'🧀', 'Тофу':'🍢',
+  'Свинина':'🥓', 'Говядина':'🥩', 'Баранина':'🍖', 'Индейка':'🦃',
+  'Капуста':'🥬', 'Салат':'🥬', 'Шпинат':'🥬', 'Брокколи':'🥦',
+  'Кукуруза':'🌽', 'Горох':'🫛', 'Фасоль':'🫘', 'Чечевица':'🫘',
+};
+
+function getIngredientEmoji(name) {
+  if (!name) return '🍽';
+  const trimmed = name.trim();
+  if (ingredientEmoji[trimmed]) return ingredientEmoji[trimmed];
+  for (const key in ingredientEmoji) {
+    if (trimmed.toLowerCase().includes(key.toLowerCase())) return ingredientEmoji[key];
+  }
+  return '🍴';
+}
+
+// ════════════════════════════════
+//  ДИНАМИЧЕСКИЕ ЧИПЫ
+// ════════════════════════════════
+window.renderIngredientChips = function() {
+  const container = document.getElementById('ingredient-chips');
+  if (!container) return;
+
+  const allIngredients = new Set();
+  dishes.forEach(d => d.ingredients.forEach(i => allIngredients.add(i.trim())));
+
+  const baseOrder = ['Мясо','Рыба','Курица','Овощи','Сыр','Грибы','Тесто','Рис','Паста'];
+  const sorted = Array.from(allIngredients).sort((a, b) => {
+    const ai = baseOrder.indexOf(a);
+    const bi = baseOrder.indexOf(b);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return a.localeCompare(b, 'ru');
+  });
+
+  const previouslySelected = new Set(selectedIngredients);
+
+  container.innerHTML = sorted.map(name => {
+    const emoji = getIngredientEmoji(name);
+    const isSelected = previouslySelected.has(name);
+    return `<div class="chip ${isSelected ? 'selected' : ''}" data-val="${name}">${emoji} ${name}</div>`;
+  }).join('');
+
+  container.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('selected');
+      const val = chip.dataset.val;
+      if (chip.classList.contains('selected')) {
+        if (!selectedIngredients.includes(val)) selectedIngredients.push(val);
+      } else {
+        selectedIngredients = selectedIngredients.filter(v => v !== val);
+      }
+    });
+  });
+
+  selectedIngredients = selectedIngredients.filter(i => allIngredients.has(i));
+};
+
+// ════════════════════════════════
+//  ФОТО
+// ════════════════════════════════
+function photoHTML(photo) {
+  if (!photo) return '🍽';
+  if (typeof photo === 'string' && (photo.startsWith('http') || photo.startsWith('data:'))) {
+    return `<img src="${photo}" alt="">`;
+  }
+  return photo;
+}
+
+function resetPhotoUI(target) {
+  const preview = document.getElementById(target + '-photo-preview');
+  const emojiInput = document.getElementById(target + '-photo-emoji');
+  const urlInput = document.getElementById(target + '-photo-url');
+  const fileInput = document.getElementById(target + '-photo-file');
+
+  if (preview) {
+    preview.textContent = target === 'dish' ? '🍽' : '🥤';
+    preview.classList.remove('has-image');
+  }
+  if (emojiInput) emojiInput.value = target === 'dish' ? '🍽' : '🥤';
+  if (urlInput) urlInput.value = '';
+  if (fileInput) fileInput.value = '';
+
+  document.querySelectorAll(`.photo-tab[data-target="${target}"]`).forEach(t => {
+    t.classList.toggle('active', t.dataset.photoTab === 'emoji');
+  });
+  document.querySelectorAll(`.photo-input-panel[data-target="${target}"]`).forEach(p => {
+    p.classList.toggle('active', p.dataset.photoPanel === 'emoji');
+  });
+
+  photoMode[target] = 'emoji';
+  currentPhoto[target] = null;
+}
+
+function updatePhotoPreview(target) {
+  const preview = document.getElementById(target + '-photo-preview');
+  if (!preview) return;
+
+  if (currentPhoto[target]) {
+    if (currentPhoto[target].startsWith('data:') || currentPhoto[target].startsWith('http')) {
+      preview.innerHTML = `<img src="${currentPhoto[target]}" alt="">`;
+      preview.classList.add('has-image');
+    } else {
+      preview.textContent = currentPhoto[target];
+      preview.classList.remove('has-image');
+    }
+  } else {
+    const emojiInput = document.getElementById(target + '-photo-emoji');
+    const emoji = emojiInput?.value || (target === 'dish' ? '🍽' : '🥤');
+    preview.textContent = emoji;
+    preview.classList.remove('has-image');
+  }
+}
+
+function getCurrentPhoto(target) {
+  if (photoMode[target] === 'emoji') {
+    return document.getElementById(target + '-photo-emoji').value.trim() || (target === 'dish' ? '🍽' : '🥤');
+  }
+  if (photoMode[target] === 'url') {
+    const url = document.getElementById(target + '-photo-url').value.trim();
+    return url || (target === 'dish' ? '🍽' : '🥤');
+  }
+  if (photoMode[target] === 'file') {
+    return currentPhoto[target] || (target === 'dish' ? '🍽' : '🥤');
+  }
+  return target === 'dish' ? '🍽' : '🥤';
+}
+
+// ════════════════════════════════
+//  DISH DETAIL MODAL
+// ════════════════════════════════
+window.openDishModal = function(type, id) {
+  const item = type === 'dish' ? dishes.find(d => d.id === id) : drinks.find(d => d.id === id);
+  if (!item) return;
+
+  currentDishModal = { type, id };
+  currentDishModalQty = 1;
+
+  const inCart = cart.find(c => c.type === type && c.id === id);
+  const inCartQty = inCart ? inCart.qty : 0;
+  const hasDiscount = type === 'dish' && discountedDishes[id] && item.special;
+  const discountPercent = hasDiscount ? discountedDishes[id] : 0;
+  const actualPrice = type === 'dish' ? getDishPrice(item) : item.price;
+
+  const content = document.getElementById('dish-modal-content');
+  let html = `
+    <button class="dish-modal-close" data-action="close-dish-modal">×</button>
+    <div class="dish-modal-hero">${photoHTML(item.photo)}</div>
+    <div class="dish-modal-body">
+      <div class="dish-modal-header">
+        <div class="dish-modal-name">${item.name}</div>
+        <div class="dish-modal-price">
+          ${hasDiscount ? `<span class="dish-price-old">${item.price} ₽</span>` : ''}
+          ${actualPrice} ₽
+        </div>
+      </div>
+      <div class="dish-modal-tags">
+        ${type === 'dish' ? `
+          <span class="dish-modal-tag">⏱ ${item.time}</span>
+          <span class="dish-modal-tag">🌶 ${spiceLabels[item.spice]}</span>
+          <span class="dish-modal-tag">🥣 ${item.sauce}</span>
+          ${item.special ? '<span class="dish-modal-tag special">⭐ Блюдо дня</span>' : ''}
+          ${hasDiscount ? `<span class="dish-modal-tag special">🎁 Скидка ${discountPercent}%</span>` : ''}
+        ` : `
+          <span class="dish-modal-tag">🌡 ${item.temp}</span>
+          <span class="dish-modal-tag">${item.alcohol ? '🍷 С алкоголем' : '🚫 Без алкоголя'}</span>
+        `}
+      </div>
+  `;
+
+  if (type === 'dish' && item.kbju) {
+    html += `
+      <div class="dish-modal-section">
+        <div class="dish-modal-section-title">Пищевая ценность (на порцию)</div>
+        <div class="dish-modal-kbju">
+          <div class="kbju-card"><div class="kbju-value">${item.kbju.kcal}</div><div class="kbju-label">Ккал</div></div>
+          <div class="kbju-card"><div class="kbju-value">${item.kbju.protein}г</div><div class="kbju-label">Белки</div></div>
+          <div class="kbju-card"><div class="kbju-value">${item.kbju.fat}г</div><div class="kbju-label">Жиры</div></div>
+          <div class="kbju-card"><div class="kbju-value">${item.kbju.carbs}г</div><div class="kbju-label">Углеводы</div></div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (item.ingredients && item.ingredients.length) {
+    html += `
+      <div class="dish-modal-section">
+        <div class="dish-modal-section-title">Состав</div>
+        <div class="dish-modal-ingredients">
+          ${item.ingredients.map(i => `<span class="dish-modal-ing">${i}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  if (type === 'dish' && item.special && !discountedDishes[id] && item.discount > 0) {
+    html += `
+      <div class="dish-modal-section">
+        <div class="dish-modal-section-title">🎁 Есть шанс на скидку</div>
+        <button class="btn-primary" style="background: linear-gradient(135deg, #d4af37, #f0d78c); color: #1b4332; font-weight: 800;"
+                data-action="scratch" data-price="${item.price}" data-dish-id="${item.id}">
+          🎰 Открыть скрэтч-лотерею — до ${item.discount}%
+        </button>
+      </div>
+    `;
+  }
+
+  const totalPrice = actualPrice * currentDishModalQty;
+
+  html += `
+      <div class="dish-modal-section">
+        <div class="dish-modal-section-title">${inCart ? `Уже в корзине: ${inCartQty} шт.` : 'Добавить в заказ'}</div>
+        <div class="dish-modal-actions">
+          <div class="dish-modal-qty">
+            <button class="dish-modal-qty-btn" data-action="dish-modal-qty" data-delta="-1">−</button>
+            <span class="dish-modal-qty-num" id="dish-modal-qty-num">${currentDishModalQty}</span>
+            <button class="dish-modal-qty-btn" data-action="dish-modal-qty" data-delta="1">+</button>
+          </div>
+          <button class="dish-modal-add-btn ${inCart ? 'in-cart' : ''}" data-action="dish-modal-add">
+            ${inCart ? '✓ Добавить ещё' : '🛒 Добавить в корзину'} · <span id="dish-modal-total">${totalPrice}</span> ₽
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  content.innerHTML = html;
+  document.getElementById('dish-modal').classList.add('visible');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeDishModal = function() {
+  document.getElementById('dish-modal').classList.remove('visible');
+  document.body.style.overflow = '';
+  currentDishModal = null;
+};
+
+window.dishModalQtyChange = function(delta) {
+  currentDishModalQty = Math.max(1, currentDishModalQty + delta);
+  const numEl = document.getElementById('dish-modal-qty-num');
+  if (numEl) numEl.textContent = currentDishModalQty;
+  if (currentDishModal) {
+    const item = currentDishModal.type === 'dish'
+      ? dishes.find(d => d.id === currentDishModal.id)
+      : drinks.find(d => d.id === currentDishModal.id);
+    if (item) {
+      const actualPrice = currentDishModal.type === 'dish' ? getDishPrice(item) : item.price;
+      const totalEl = document.getElementById('dish-modal-total');
+      if (totalEl) totalEl.textContent = actualPrice * currentDishModalQty;
+    }
+  }
+};
+
+window.dishModalAdd = function() {
+  if (!currentDishModal) return;
+  const { type, id } = currentDishModal;
+  const item = type === 'dish' ? dishes.find(d => d.id === id) : drinks.find(d => d.id === id);
+  if (!item) return;
+
+  const actualPrice = type === 'dish' ? getDishPrice(item) : item.price;
+
+  const existing = cart.find(c => c.type === type && c.id === id);
+  if (existing) existing.qty += currentDishModalQty;
+  else cart.push({ type, id, name: item.name, price: actualPrice, photo: item.photo, qty: currentDishModalQty });
+
+  updateCartUI();
+  refreshMenuButtons();
+  showToast(`"${item.name}" × ${currentDishModalQty} добавлено в корзину`);
+  closeDishModal();
+};
+
+// ════════════════════════════════
+//  SCREEN NAV
+// ════════════════════════════════
+window.goToScreen = function(n) {
+  n = parseInt(n);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('screen' + n);
+  if (target) {
+    target.classList.add('active');
+    const dots = target.querySelectorAll('.progress .dot');
+    dots.forEach((dot, i) => { dot.classList.toggle('active', i === n); });
+  }
+  const cartBtn = document.getElementById('cart-btn');
+  if (cartBtn) cartBtn.style.display = (n === 0) ? 'none' : 'flex';
+  if (n === 1) renderIngredientChips();
+  if (n === 6) renderMenu();
+};
+
+window.goToResults = function() {
+  readParams();
+  const results = computeResults();
+  if (results.maxMatch < 30 && results.dishes.length === 0) {
+    goToScreen(4);
+  } else {
+    renderResults(results);
+    goToScreen(3);
+  }
+};
+
+window.openAdmin = function() {
+  document.getElementById('guest-app').style.display = 'none';
+  document.getElementById('admin-panel').classList.add('active');
+  renderAdminLists();
+};
+
+window.closeAdmin = function() {
+  document.getElementById('guest-app').style.display = '';
+  document.getElementById('admin-panel').classList.remove('active');
+  renderIngredientChips();
+};
+
+window.submitFeedback = function() {
+  const text = document.getElementById('feedback-text').value.trim();
+  if (selectedRating === 0) { alert('Пожалуйста, поставьте оценку'); return; }
+  alert(`Спасибо за ваш отзыв! Оценка: ${selectedRating} ⭐\nКомментарий: ${text || 'без комментария'}`);
+  selectedRating = 0;
+  document.querySelectorAll('#star-rating .star').forEach(s => s.classList.remove('active'));
+  document.getElementById('feedback-text').value = '';
+  goToScreen(0);
+};
+
+// ════════════════════════════════
+//  CART
+// ════════════════════════════════
+window.addToCart = function(type, id) {
+  const item = type === 'dish' ? dishes.find(d => d.id === id) : drinks.find(d => d.id === id);
+  if (!item) return;
+
+  const actualPrice = type === 'dish' ? getDishPrice(item) : item.price;
+
+  const existing = cart.find(c => c.type === type && c.id === id);
+  if (existing) existing.qty++;
+  else cart.push({ type, id, name: item.name, price: actualPrice, photo: item.photo, qty: 1 });
+  updateCartUI();
+  refreshMenuButtons();
+  showToast(`"${item.name}" добавлено в корзину`);
+};
+
+window.removeFromCart = function(type, id) {
+  cart = cart.filter(c => !(c.type === type && c.id === id));
+  updateCartUI();
+  refreshMenuButtons();
+  showToast('Удалено из корзины');
+};
+
+function refreshMenuButtons() {
+  document.querySelectorAll('[data-action="add-cart"]').forEach(btn => {
+    const type = btn.dataset.type;
+    const id = parseInt(btn.dataset.id);
+    const inCart = cart.find(c => c.type === type && c.id === id);
+    if (inCart) {
+      btn.classList.add('added', 'remove-mode');
+      btn.textContent = '×';
+      btn.title = 'Удалить из корзины';
+    } else {
+      btn.classList.remove('added', 'remove-mode');
+      btn.textContent = '+';
+      btn.title = 'Добавить в корзину';
+    }
+  });
+}
+
+window.changeQty = function(index, delta) {
+  if (!cart[index]) return;
+  cart[index].qty += delta;
+  if (cart[index].qty <= 0) cart.splice(index, 1);
+  updateCartUI();
+  refreshMenuButtons();
+};
+
+window.removeCartItem = function(index) {
+  cart.splice(index, 1);
+  updateCartUI();
+  refreshMenuButtons();
+};
+
+window.updateCartUI = function() {
+  const count = cart.reduce((sum, item) => sum + item.qty, 0);
+  const countEl = document.getElementById('cart-count');
+  if (countEl) countEl.textContent = count;
+
+  const itemsEl = document.getElementById('cart-items');
+  const footerEl = document.getElementById('cart-footer');
+  const totalEl = document.getElementById('cart-total-price');
+  if (!itemsEl) return;
+
+  if (cart.length === 0) {
+    itemsEl.innerHTML = `
+      <div class="cart-empty">
+        <div class="cart-empty-icon">🛒</div>
+        <div>Корзина пуста</div>
+        <div style="font-size:13px;margin-top:8px;opacity:0.7;">Добавьте блюда и напитки из меню</div>
+      </div>
+    `;
+    footerEl.style.display = 'none';
+    return;
+  }
+
+  itemsEl.innerHTML = cart.map((item, i) => {
+    const dish = item.type === 'dish' ? dishes.find(d => d.id === item.id) : null;
+    const originalPrice = dish ? dish.price : item.price;
+    const hasDiscount = item.type === 'dish' && discountedDishes[item.id] && dish && dish.special;
+    const discountPercent = hasDiscount ? discountedDishes[item.id] : 0;
+    return `
+    <div class="cart-item">
+      <div class="cart-item-icon">${photoHTML(item.photo)}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-price">
+          ${hasDiscount ? `<span class="cart-item-price-old">${originalPrice} ₽</span>` : ''}
+          <span>${item.price} ₽</span>
+          ${hasDiscount ? `<span class="cart-item-discount">-${discountPercent}%</span>` : ''}
+        </div>
+      </div>
+      <div class="cart-item-qty">
+        <button class="qty-btn" data-action="qty" data-index="${i}" data-delta="-1">−</button>
+        <span class="qty-num">${item.qty}</span>
+        <button class="qty-btn" data-action="qty" data-index="${i}" data-delta="1">+</button>
+      </div>
+      <button class="cart-item-remove" data-action="cart-remove" data-index="${i}" title="Удалить">×</button>
+    </div>
+  `}).join('');
+
+  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  totalEl.textContent = total + ' ₽';
+  footerEl.style.display = 'block';
+};
+
+window.openCart = function() {
+  updateCartUI();
+  refreshMenuButtons();
+  document.getElementById('cart-modal').classList.add('visible');
+};
+
+window.closeCart = function() {
+  document.getElementById('cart-modal').classList.remove('visible');
+};
+
+window.checkout = function() {
+  if (cart.length === 0) return;
+  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  alert(`Заказ оформлен! 🎉\n\nПозиций: ${cart.reduce((s, i) => s + i.qty, 0)}\nИтого: ${total} ₽\n\nОфициант скоро подойдёт.`);
+  cart = [];
+  updateCartUI();
+  refreshMenuButtons();
+  closeCart();
+};
+
+// ════════════════════════════════
+//  MENU
+// ════════════════════════════════
+window.switchMenuTab = function(tab) {
+  currentMenuTab = tab;
+  document.querySelectorAll('.menu-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  renderMenu();
+};
+
+window.renderMenu = function() {
+  const content = document.getElementById('menu-content');
+  if (!content) return;
+
+  if (currentMenuTab === 'dishes') {
+    content.innerHTML = dishes.map(d => {
+      const kbju = d.kbju || {kcal:'—', protein:'—', fat:'—', carbs:'—'};
+      const inCart = cart.find(c => c.type === 'dish' && c.id === d.id);
+      const hasDiscount = discountedDishes[d.id] && d.special;
+      const discountPercent = hasDiscount ? discountedDishes[d.id] : 0;
+      const actualPrice = getDishPrice(d);
+      return `
+        <div class="dish-card">
+          <button class="add-cart-btn ${inCart ? 'added remove-mode' : ''}" 
+                  data-action="add-cart" data-type="dish" data-id="${d.id}"
+                  title="${inCart ? 'Удалить из корзины' : 'Добавить в корзину'}">
+            ${inCart ? '×' : '+'}
+          </button>
+          <button class="details-btn" data-action="open-dish-modal" data-type="dish" data-id="${d.id}">Подробнее →</button>
+          <div class="dish-card-inner">
+            <div class="dish-img">${photoHTML(d.photo)}</div>
+            <div class="dish-info">
+              <div class="dish-header">
+                <div class="dish-name">${d.name} ${d.special ? '⭐' : ''}</div>
+                <div class="dish-price">
+                  ${hasDiscount ? `<span class="dish-price-old">${d.price} ₽</span>` : ''}
+                  ${hasDiscount ? `<span class="discount-badge">-${discountPercent}%</span>` : ''}
+                  ${actualPrice} ₽
+                </div>
+              </div>
+              <div class="dish-meta">
+                <span>⏱ ${d.time}</span>
+                <span>🌶 ${spiceLabels[d.spice]}</span>
+              </div>
+              <div class="kbju-row">
+                <span>КБЖУ:</span> ${kbju.kcal} ккал / Б ${kbju.protein} / Ж ${kbju.fat} / У ${kbju.carbs}
+              </div>
+              <div class="ingredients-row">
+                ${d.ingredients.map(i => `<span class="ing-tag match">${i}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } else {
+    content.innerHTML = drinks.map(d => {
+      const inCart = cart.find(c => c.type === 'drink' && c.id === d.id);
+      return `
+        <div class="drink-card">
+          <div class="drink-icon">${photoHTML(d.photo)}</div>
+          <div style="flex:1;">
+            <div class="drink-name">${d.name}</div>
+            <div class="drink-price">${d.price} ₽ · ${d.temp}</div>
+          </div>
+          <button class="details-btn" data-action="open-dish-modal" data-type="drink" data-id="${d.id}" style="position:static;margin-right:8px;">Подробнее</button>
+          <button class="add-cart-btn ${inCart ? 'added remove-mode' : ''}" 
+                  data-action="add-cart" data-type="drink" data-id="${d.id}"
+                  style="position:static;"
+                  title="${inCart ? 'Удалить из корзины' : 'Добавить в корзину'}">
+            ${inCart ? '×' : '+'}
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+};
+
+// ════════════════════════════════
+//  MATCHING
+// ════════════════════════════════
+function updateSpice(val) {
+  selectedSpice = parseInt(val);
+  document.getElementById('spice-label').textContent = spiceLabels[val];
+}
+
+function readParams() {
+  const saucePill = document.querySelector('.pill.selected[data-group="sauce"]');
+  const timePill  = document.querySelector('.pill.selected[data-group="time"]');
+  const drinkPill = document.querySelector('.pill.selected[data-group="drink"]');
+  selectedSauce = saucePill ? saucePill.textContent : 'Без соуса';
+  selectedTime  = timePill  ? timePill.textContent  : 'Не важно';
+  selectedDrink = drinkPill ? drinkPill.textContent : 'Не важно';
+}
+
+function matchPercent(dish) {
+  if (selectedIngredients.length === 0) return 50;
+  const matched = dish.ingredients.filter(i => selectedIngredients.includes(i)).length;
+  let score = Math.round((matched / Math.max(selectedIngredients.length, dish.ingredients.length)) * 100);
+  if (selectedSauce !== 'Не важно' && dish.sauce === selectedSauce) score = Math.min(100, score + 10);
+  if (selectedTime  !== 'Не важно' && dish.time  === selectedTime)  score = Math.min(100, score + 5);
+  if (Math.abs(dish.spice - selectedSpice) <= 1)                    score = Math.min(100, score + 5);
+  return score;
+}
+
+function matchDrink(drink) {
+  if (selectedDrink === 'Не важно') return 80;
+  if (selectedDrink === 'Горячий'   && drink.temp    === 'Горячий')   return 90;
+  if (selectedDrink === 'Холодный'  && drink.temp    === 'Холодный')  return 90;
+  if (selectedDrink === 'С алкоголем'  && drink.alcohol === true)   return 90;
+  if (selectedDrink === 'Без алкоголя' && drink.alcohol === false)  return 90;
+  return 20;
+}
+
+function computeResults() {
+  const scored = dishes.map(d => ({ ...d, match: matchPercent(d) })).sort((a, b) => b.match - a.match);
+  const top3 = scored.slice(0, 3);
+  const maxMatch = top3[0]?.match ?? 0;
+  const drinkScored = drinks.map(d => ({ ...d, match: matchDrink(d) })).sort((a, b) => b.match - a.match);
+  const top2drinks = drinkScored.slice(0, 2);
+  return { dishes: top3, drinks: top2drinks, maxMatch };
+}
+
+function badgeClass(pct) {
+  if (pct >= 70) return 'high';
+  if (pct >= 40) return 'mid';
+  return '';
+}
+
+function renderResults({ dishes: top3, drinks: top2 }) {
+  const body = document.getElementById('results-body');
+  let html = '<div class="section-title">🍽 Ваши рекомендации</div>';
+
+  top3.forEach(dish => {
+    const matchedTags = dish.ingredients.map(ing =>
+      `<span class="ing-tag ${selectedIngredients.includes(ing) ? 'match' : 'nomatch'}">${ing}</span>`
+    ).join('');
+    const kbju = dish.kbju || {kcal:'—', protein:'—', fat:'—', carbs:'—'};
+    const inCart = cart.find(c => c.type === 'dish' && c.id === dish.id);
+    const hasDiscount = discountedDishes[dish.id] && dish.special;
+    const discountPercent = hasDiscount ? discountedDishes[dish.id] : 0;
+    const actualPrice = getDishPrice(dish);
+
+    const clickAction = (dish.special && !discountedDishes[dish.id] && dish.discount > 0)
+      ? `data-action="scratch" data-price="${dish.price}" data-dish-id="${dish.id}"`
+      : `data-action="open-dish-modal" data-type="dish" data-id="${dish.id}"`;
+
+    html += `
+      <div class="dish-card">
+        <button class="add-cart-btn ${inCart ? 'added remove-mode' : ''}" 
+                data-action="add-cart" data-type="dish" data-id="${dish.id}"
+                title="${inCart ? 'Удалить из корзины' : 'Добавить в корзину'}">
+          ${inCart ? '×' : '+'}
+        </button>
+        <div class="dish-card-inner" style="cursor:pointer;" ${clickAction}>
+          <div class="dish-img">${photoHTML(dish.photo)}</div>
+          <div class="dish-info">
+            <div class="dish-header">
+              <div class="dish-name">${dish.name} ${dish.special ? '⭐' : ''}</div>
+              <div class="dish-price">
+                ${hasDiscount ? `<span class="dish-price-old">${dish.price} ₽</span>` : ''}
+                ${hasDiscount ? `<span class="discount-badge">-${discountPercent}%</span>` : ''}
+                ${actualPrice} ₽
+              </div>
+            </div>
+            <div class="dish-meta">
+              <span>⏱ ${dish.time}</span>
+              <span>🌶 ${spiceLabels[dish.spice]}</span>
+            </div>
+            <div class="match-badge ${badgeClass(dish.match)}">${dish.match}% совпадение</div>
+            ${dish.special && !discountedDishes[dish.id] && dish.discount > 0
+              ? `<div style="font-size:11px;color:#d4af37;font-weight:700;margin-bottom:8px;">🎰 Нажмите, чтобы открыть скрэтч-лотерею и получить скидку до ${dish.discount}%</div>`
+              : ''}
+            ${hasDiscount
+              ? `<div style="font-size:11px;color:#2d6a4f;font-weight:700;margin-bottom:8px;">✅ Скидка ${discountPercent}% активирована</div>`
+              : ''}
+            <div class="kbju-row">
+              <span>КБЖУ:</span> ${kbju.kcal} ккал / Б ${kbju.protein} / Ж ${kbju.fat} / У ${kbju.carbs}
+            </div>
+            <div class="ingredients-row">${matchedTags}</div>
+          </div>
+        </div>
+        <button class="details-btn" data-action="open-dish-modal" data-type="dish" data-id="${dish.id}">Подробнее →</button>
+      </div>`;
+  });
+
+  html += '<div class="section-title" style="margin-top:24px;">🥤 Напитки</div>';
+  top2.forEach(drink => {
+    const inCart = cart.find(c => c.type === 'drink' && c.id === drink.id);
+    html += `
+      <div class="drink-card">
+        <div class="drink-icon">${photoHTML(drink.photo)}</div>
+        <div style="flex:1;">
+          <div class="drink-name">${drink.name}</div>
+          <div class="drink-price">${drink.price} ₽</div>
+        </div>
+        <div class="drink-match">${drink.match}%</div>
+        <button class="details-btn" data-action="open-dish-modal" data-type="drink" data-id="${drink.id}" style="position:static;margin-left:8px;">Подробнее</button>
+        <button class="add-cart-btn ${inCart ? 'added remove-mode' : ''}" 
+                data-action="add-cart" data-type="drink" data-id="${drink.id}"
+                style="position:static;margin-left:8px;"
+                title="${inCart ? 'Удалить из корзины' : 'Добавить в корзину'}">
+          ${inCart ? '×' : '+'}
+        </button>
+      </div>`;
+  });
+
+  const ingText = selectedIngredients.length
+    ? `вы выбрали: <strong>${selectedIngredients.join(', ')}</strong>`
+    : 'вы не указали предпочтения — мы показываем популярные блюда';
+
+  html += `
+    <div class="why-block">
+      <strong>Почему это вам подойдёт?</strong><br>
+      Исходя из того, что ${ingText}, а также ваших предпочтений по соусу и остроте, наши блюда совпадают с вашим запросом лучше всего.
+    </div>
+    <button class="btn-primary" style="margin-top:20px;" data-action="go" data-screen="6">🍽 Посмотреть меню ресторана</button>
+    <button class="btn-secondary" style="margin-top:12px;" data-action="go" data-screen="0">← На главную</button>
+    <button class="btn-secondary" style="margin-top:12px;" data-action="go" data-screen="5">Оставить отзыв 💬</button>
+  `;
+
+  body.innerHTML = html;
+  refreshMenuButtons();
+}
+
+// ════════════════════════════════
+//  ADMIN
+// ════════════════════════════════
+window.saveDish = function() {
+  const id   = document.getElementById('dish-edit-id').value;
+  const name = document.getElementById('dish-name').value.trim();
+  if (!name) { alert('Введите название блюда'); return; }
+
+  const special = document.getElementById('dish-special').checked;
+  const discount = special ? parseInt(document.getElementById('dish-discount').value) || 0 : 0;
+
+  const photo = getCurrentPhoto('dish');
+  const dish = {
+    id: id ? parseInt(id) : nextDishId++,
+    name,
+    price: parseInt(document.getElementById('dish-price').value) || 0,
+    photo,
+    ingredients: document.getElementById('dish-ingredients').value.split(',').map(s=>s.trim()).filter(Boolean),
+    time: document.getElementById('dish-time').value,
+    spice: parseInt(document.getElementById('dish-spice').value),
+    sauce: document.getElementById('dish-sauce').value,
+    special,
+    discount,
+    kbju: {
+      kcal: parseInt(document.getElementById('dish-kcal').value) || 0,
+      protein: parseInt(document.getElementById('dish-protein').value) || 0,
+      fat: parseInt(document.getElementById('dish-fat').value) || 0,
+      carbs: parseInt(document.getElementById('dish-carbs').value) || 0,
+    }
+  };
+
+  if (id) {
+    const idx = dishes.findIndex(d => d.id === dish.id);
+    if (idx !== -1) dishes[idx] = dish;
+  } else {
+    dishes.push(dish);
+  }
+
+  resetDishForm();
+  renderAdminLists();
+  if (currentMenuTab === 'dishes') renderMenu();
+  updateCartUI();
+  renderIngredientChips();
+};
+
+window.editDish = function(id) {
+  const d = dishes.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('dish-edit-id').value    = d.id;
+  document.getElementById('dish-name').value       = d.name;
+  document.getElementById('dish-price').value      = d.price;
+  document.getElementById('dish-ingredients').value = d.ingredients.join(', ');
+  document.getElementById('dish-time').value       = d.time;
+  document.getElementById('dish-spice').value      = d.spice;
+  document.getElementById('dish-sauce').value      = d.sauce;
+  document.getElementById('dish-special').checked  = d.special;
+  document.getElementById('dish-discount').value   = d.discount || 15;
+  document.getElementById('dish-discount-value').textContent = (d.discount || 15) + '%';
+  toggleDiscountField();
+  if (d.kbju) {
+    document.getElementById('dish-kcal').value    = d.kbju.kcal;
+    document.getElementById('dish-protein').value = d.kbju.protein;
+    document.getElementById('dish-fat').value     = d.kbju.fat;
+    document.getElementById('dish-carbs').value   = d.kbju.carbs;
+  }
+
+  resetPhotoUI('dish');
+  if (d.photo) {
+    if (d.photo.startsWith('http') || d.photo.startsWith('data:')) {
+      currentPhoto['dish'] = d.photo;
+      document.querySelectorAll('.photo-tab[data-target="dish"]').forEach(t => {
+        t.classList.toggle('active', t.dataset.photoTab === 'url');
+      });
+      document.querySelectorAll('.photo-input-panel[data-target="dish"]').forEach(p => {
+        p.classList.toggle('active', p.dataset.photoPanel === 'url');
+      });
+      document.getElementById('dish-photo-url').value = d.photo.startsWith('http') ? d.photo : '';
+      photoMode['dish'] = 'url';
+      updatePhotoPreview('dish');
+    } else {
+      document.getElementById('dish-photo-emoji').value = d.photo;
+      photoMode['dish'] = 'emoji';
+      updatePhotoPreview('dish');
+    }
+  }
+
+  document.getElementById('dish-form-title').textContent = '✏️ Редактировать блюдо';
+  document.querySelector('#tab-dishes .admin-form').scrollIntoView({ behavior:'smooth' });
+};
+
+window.deleteDish = function(id) {
+  if (!confirm('Удалить блюдо?')) return;
+  dishes = dishes.filter(d => d.id !== id);
+  cart = cart.filter(c => !(c.type === 'dish' && c.id === id));
+  delete discountedDishes[id];
+  renderAdminLists();
+  if (currentMenuTab === 'dishes') renderMenu();
+  updateCartUI();
+  renderIngredientChips();
+};
+
+window.saveDrink = function() {
+  const id   = document.getElementById('drink-edit-id').value;
+  const name = document.getElementById('drink-name').value.trim();
+  if (!name) { alert('Введите название напитка'); return; }
+
+  const photo = getCurrentPhoto('drink');
+  const drink = {
+    id: id ? parseInt(id) : nextDrinkId++,
+    name,
+    price: parseInt(document.getElementById('drink-price').value) || 0,
+    photo,
+    temp: document.getElementById('drink-temp').value,
+    alcohol: document.getElementById('drink-alcohol').value === '1',
+    ingredients: document.getElementById('drink-ingredients').value.split(',').map(s=>s.trim()).filter(Boolean),
+  };
+
+  if (id) {
+    const idx = drinks.findIndex(d => d.id === drink.id);
+    if (idx !== -1) drinks[idx] = drink;
+  } else {
+    drinks.push(drink);
+  }
+
+  resetDrinkForm();
+  renderAdminLists();
+  if (currentMenuTab === 'drinks') renderMenu();
+  updateCartUI();
+};
+
+window.editDrink = function(id) {
+  const d = drinks.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('drink-edit-id').value     = d.id;
+  document.getElementById('drink-name').value        = d.name;
+  document.getElementById('drink-price').value       = d.price;
+  document.getElementById('drink-temp').value        = d.temp;
+  document.getElementById('drink-alcohol').value     = d.alcohol ? '1' : '0';
+  document.getElementById('drink-ingredients').value = d.ingredients.join(', ');
+
+  resetPhotoUI('drink');
+  if (d.photo) {
+    if (d.photo.startsWith('http') || d.photo.startsWith('data:')) {
+      currentPhoto['drink'] = d.photo;
+      document.querySelectorAll('.photo-tab[data-target="drink"]').forEach(t => {
+        t.classList.toggle('active', t.dataset.photoTab === 'url');
+      });
+      document.querySelectorAll('.photo-input-panel[data-target="drink"]').forEach(p => {
+        p.classList.toggle('active', p.dataset.photoPanel === 'url');
+      });
+      document.getElementById('drink-photo-url').value = d.photo.startsWith('http') ? d.photo : '';
+      photoMode['drink'] = 'url';
+      updatePhotoPreview('drink');
+    } else {
+      document.getElementById('drink-photo-emoji').value = d.photo;
+      photoMode['drink'] = 'emoji';
+      updatePhotoPreview('drink');
+    }
+  }
+
+  document.getElementById('drink-form-title').textContent = '✏️ Редактировать напиток';
+  document.querySelector('#tab-drinks .admin-form').scrollIntoView({ behavior:'smooth' });
+};
+
+window.deleteDrink = function(id) {
+  if (!confirm('Удалить напиток?')) return;
+  drinks = drinks.filter(d => d.id !== id);
+  cart = cart.filter(c => !(c.type === 'drink' && c.id === id));
+  renderAdminLists();
+  if (currentMenuTab === 'drinks') renderMenu();
+  updateCartUI();
+};
+
+function renderAdminLists() {
+  const dl = document.getElementById('dishes-list');
+  if (dl) dl.innerHTML = dishes.map(d => `
+    <div class="admin-item">
+      <div class="admin-item-thumb">${photoHTML(d.photo)}</div>
+      <div class="admin-item-info">
+        <div class="admin-item-name">${d.name}</div>
+        <div class="admin-item-meta">${d.price} ₽ · ${d.time} · Острота: ${d.spice} · ${d.sauce}</div>
+        ${d.special ? '<span class="admin-item-badge">⭐ Блюдо дня</span>' : ''}
+        ${d.special && d.discount ? `<span class="admin-item-badge discount">🎁 -${d.discount}%</span>` : ''}
+      </div>
+      <div class="admin-actions">
+        <button class="btn-edit" data-action="edit-dish" data-id="${d.id}">Ред.</button>
+        <button class="btn-del" data-action="del-dish" data-id="${d.id}">✕</button>
+      </div>
+    </div>`).join('');
+
+  const drl = document.getElementById('drinks-list');
+  if (drl) drl.innerHTML = drinks.map(d => `
+    <div class="admin-item">
+      <div class="admin-item-thumb">${photoHTML(d.photo)}</div>
+      <div class="admin-item-info">
+        <div class="admin-item-name">${d.name}</div>
+        <div class="admin-item-meta">${d.price} ₽ · ${d.temp} · ${d.alcohol ? 'Алкоголь' : 'Безалкогольный'}</div>
+      </div>
+      <div class="admin-actions">
+        <button class="btn-edit" data-action="edit-drink" data-id="${d.id}">Ред.</button>
+        <button class="btn-del" data-action="del-drink" data-id="${d.id}">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function resetDishForm() {
+  ['dish-edit-id','dish-name','dish-price','dish-ingredients','dish-kcal','dish-protein','dish-fat','dish-carbs'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const sp = document.getElementById('dish-special');
+  if (sp) sp.checked = false;
+  const disc = document.getElementById('dish-discount');
+  if (disc) disc.value = 15;
+  document.getElementById('dish-discount-value').textContent = '15%';
+  toggleDiscountField();
+  const t = document.getElementById('dish-form-title');
+  if (t) t.textContent = '+ Добавить блюдо';
+  resetPhotoUI('dish');
+}
+
+function resetDrinkForm() {
+  ['drink-edit-id','drink-name','drink-price','drink-ingredients'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const t = document.getElementById('drink-form-title');
+  if (t) t.textContent = '+ Добавить напиток';
+  resetPhotoUI('drink');
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-dishes').style.display  = tab === 'dishes' ? '' : 'none';
+  document.getElementById('tab-drinks').style.display  = tab === 'drinks' ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && tab==='dishes') || (i===1 && tab==='drinks'));
+  });
+}
+
+function toggleDiscountField() {
+  const special = document.getElementById('dish-special').checked;
+  const field = document.getElementById('dish-discount-field');
+  if (field) {
+    field.style.display = special ? 'block' : 'none';
+    field.classList.toggle('active', special);
+  }
+}
+
+// ════════════════════════════════
+//  СКРЭТЧ-ЛОТЕРЕЯ
+// ════════════════════════════════
+let scratchInterval = null;
+let scratchDone = false;
+
+window.openScratch = function(price, dishId) {
+  const dish = dishes.find(d => d.id === dishId);
+  if (!dish || !dish.special || !dish.discount) {
+    showToast('Скрэтч-лотерея доступна только для блюда дня');
+    return;
+  }
+
+  scratchDone = false;
+  scratchPendingDishId = dishId;
+
+  const discountPercent = dish.discount;
+  const discounted = Math.round(price * (1 - discountPercent / 100));
+  document.getElementById('scratch-discounted-price').textContent = `Цена со скидкой: ${discounted} ₽`;
+
+  const prizeMain = document.querySelector('.scratch-prize .prize-main');
+  if (prizeMain) prizeMain.textContent = `🎉 СКИДКА ${discountPercent}%`;
+
+  const overlay = document.getElementById('scratch-overlay');
+  overlay.style.display = 'flex';
+  requestAnimationFrame(() => overlay.classList.add('visible'));
+  document.getElementById('claim-btn').classList.remove('visible');
+  initScratchCanvas();
+};
+
+window.closeScratch = function() {
+  const overlay = document.getElementById('scratch-overlay');
+  overlay.classList.remove('visible');
+  setTimeout(() => { overlay.style.display = 'none'; }, 320);
+  if (scratchInterval) { clearInterval(scratchInterval); scratchInterval = null; }
+  if (window._scratchSafetyTimer) { clearTimeout(window._scratchSafetyTimer); window._scratchSafetyTimer = null; }
+  scratchPendingDishId = null;
+};
+
+window.claimDiscount = function() {
+  if (scratchPendingDishId !== null) {
+    const dish = dishes.find(d => d.id === scratchPendingDishId);
+    if (dish && dish.special && dish.discount) {
+      discountedDishes[scratchPendingDishId] = dish.discount;
+
+      const cartItem = cart.find(c => c.type === 'dish' && c.id === scratchPendingDishId);
+      if (cartItem) {
+        cartItem.price = getDishPrice(dish);
+      }
+      updateCartUI();
+      refreshMenuButtons();
+      if (currentMenuTab === 'dishes') renderMenu();
+      if (document.getElementById('screen3').classList.contains('active')) {
+        const results = computeResults();
+        renderResults(results);
+      }
+      showToast(`✅ Скидка ${dish.discount}% активирована!`);
+    }
+  }
+
+  scratchPendingDishId = null;
+  closeScratch();
+};
+
+function initScratchCanvas() {
+  const old = document.getElementById('scratch-canvas');
+  const fresh = document.createElement('canvas');
+  fresh.id = 'scratch-canvas';
+  fresh.width  = 320;
+  fresh.height = 200;
+  fresh.style.cssText = old.style.cssText;
+  fresh.style.opacity = '1';
+  fresh.style.pointerEvents = 'auto';
+  fresh.style.transition = '';
+  old.parentNode.replaceChild(fresh, old);
+
+  const canvas = fresh;
+  const ctx = canvas.getContext('2d');
+
+  const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  grad.addColorStop(0, '#a8b5a8');
+  grad.addColorStop(0.5, '#7a8a7a');
+  grad.addColorStop(1, '#9aad9a');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 0; i < 1800; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    const r = Math.random() * 1.2;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+    ctx.fill();
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.font = 'bold 18px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('👆 Сотри, чтобы открыть', canvas.width / 2, canvas.height / 2 - 10);
+  ctx.font = 'bold 14px Inter, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.fillText('скидку', canvas.width / 2, canvas.height / 2 + 14);
+
+  ctx.globalCompositeOperation = 'destination-out';
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
+  }
+
+  function scratch(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 25, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  let isDrawing = false;
+  canvas.addEventListener('mousedown', (e) => { isDrawing = true; scratch(...Object.values(getPos(e))); });
+  canvas.addEventListener('mousemove', (e) => { if (isDrawing) scratch(...Object.values(getPos(e))); });
+  canvas.addEventListener('mouseup',   () => { isDrawing = false; });
+  canvas.addEventListener('mouseleave',() => { isDrawing = false; });
+  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); isDrawing = true; scratch(...Object.values(getPos(e))); }, { passive: false });
+  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (isDrawing) scratch(...Object.values(getPos(e))); }, { passive: false });
+  canvas.addEventListener('touchend', () => { isDrawing = false; });
+
+  if (scratchInterval) clearInterval(scratchInterval);
+  scratchInterval = setInterval(checkProgress, 100);
+
+  if (window._scratchSafetyTimer) clearTimeout(window._scratchSafetyTimer);
+  window._scratchSafetyTimer = setTimeout(() => {
+    if (!scratchDone) {
+      scratchDone = true;
+      clearInterval(scratchInterval);
+      scratchInterval = null;
+      canvas.style.transition = 'opacity 0.6s ease';
+      canvas.style.opacity = '0';
+      canvas.style.pointerEvents = 'none';
+      document.getElementById('claim-btn').classList.add('visible');
+    }
+  }, 8000);
+}
+
+function checkProgress() {
+  if (scratchDone) return;
+  const canvas = document.getElementById('scratch-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels = imageData.data;
+  let cleared = 0;
+  for (let i = 3; i < pixels.length; i += 4) if (pixels[i] === 0) cleared++;
+  const clearedPercent = (cleared / (canvas.width * canvas.height)) * 100;
+  if (clearedPercent > 40) {
+    scratchDone = true;
+    clearInterval(scratchInterval);
+    scratchInterval = null;
+    canvas.style.transition = 'opacity 0.5s ease';
+    canvas.style.opacity = '0';
+    canvas.style.pointerEvents = 'none';
+    setTimeout(() => document.getElementById('claim-btn').classList.add('visible'), 300);
+  }
+}
+
+function showToast(text) {
+  document.querySelectorAll('.toast-active').forEach(t => t.remove());
+  const toast = document.createElement('div');
+  toast.className = 'toast-active';
+  toast.style.cssText = `
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(120px);
+    background: #1b4332; color: #fff; padding: 16px 24px; border-radius: 12px;
+    border-left: 4px solid #d4af37; font-size: 15px; font-weight: 600;
+    font-family: 'Inter', sans-serif; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    z-index: 10000; transition: transform 0.35s ease, opacity 0.35s ease; opacity: 0;
+  `;
+  toast.textContent = text;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+    toast.style.opacity = '1';
+  });
+  setTimeout(() => {
+    toast.style.transform = 'translateX(-50%) translateY(120px)';
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 400);
+  }, 2500);
+}
+
+// ════════════════════════════════
+//  DELEGATION
+// ════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  renderIngredientChips();
+  goToScreen(0);
+  updateCartUI();
+
+  const spiceSlider = document.getElementById('spice-slider');
+  if (spiceSlider) spiceSlider.addEventListener('input', (e) => updateSpice(e.target.value));
+
+  document.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const group = pill.dataset.group;
+      document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p => p.classList.remove('selected'));
+      pill.classList.add('selected');
+    });
+  });
+
+  document.querySelectorAll('#star-rating .star').forEach(star => {
+    star.addEventListener('click', () => {
+      selectedRating = parseInt(star.dataset.val);
+      document.querySelectorAll('#star-rating .star').forEach(s => {
+        s.classList.toggle('active', parseInt(s.dataset.val) <= selectedRating);
+      });
+    });
+  });
+
+  document.querySelectorAll('.photo-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.target;
+      const mode = tab.dataset.photoTab;
+      photoMode[target] = mode;
+      document.querySelectorAll(`.photo-tab[data-target="${target}"]`).forEach(t => {
+        t.classList.toggle('active', t.dataset.photoTab === mode);
+      });
+      document.querySelectorAll(`.photo-input-panel[data-target="${target}"]`).forEach(p => {
+        p.classList.toggle('active', p.dataset.photoPanel === mode);
+      });
+      updatePhotoPreview(target);
+    });
+  });
+
+  ['dish','drink'].forEach(target => {
+    const emojiInput = document.getElementById(target + '-photo-emoji');
+    if (emojiInput) emojiInput.addEventListener('input', () => {
+      if (photoMode[target] === 'emoji') { currentPhoto[target] = null; updatePhotoPreview(target); }
+    });
+    const urlInput = document.getElementById(target + '-photo-url');
+    if (urlInput) urlInput.addEventListener('input', () => {
+      if (photoMode[target] === 'url') { currentPhoto[target] = urlInput.value.trim() || null; updatePhotoPreview(target); }
+    });
+    const fileInput = document.getElementById(target + '-photo-file');
+    if (fileInput) fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => { currentPhoto[target] = ev.target.result; updatePhotoPreview(target); };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  const dishSpecial = document.getElementById('dish-special');
+  if (dishSpecial) dishSpecial.addEventListener('change', toggleDiscountField);
+
+  const discountSlider = document.getElementById('dish-discount');
+  if (discountSlider) {
+    discountSlider.addEventListener('input', (e) => {
+      document.getElementById('dish-discount-value').textContent = e.target.value + '%';
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+    const action = target.dataset.action;
+
+    if (action === 'add-cart') {
+      e.stopPropagation();
+      const type = target.dataset.type;
+      const id = parseInt(target.dataset.id);
+      const inCart = cart.find(c => c.type === type && c.id === id);
+      if (inCart) removeFromCart(type, id);
+      else addToCart(type, id);
+      return;
+    }
+
+    switch (action) {
+      case 'go': goToScreen(target.dataset.screen); break;
+      case 'results': goToResults(); break;
+      case 'admin': openAdmin(); break;
+      case 'admin-close': closeAdmin(); break;
+      case 'tab': switchTab(target.dataset.tab); break;
+      case 'menu-tab': switchMenuTab(target.dataset.tab); break;
+      case 'save-dish': saveDish(); break;
+      case 'save-drink': saveDrink(); break;
+      case 'edit-dish': editDish(parseInt(target.dataset.id)); break;
+      case 'del-dish': deleteDish(parseInt(target.dataset.id)); break;
+      case 'edit-drink': editDrink(parseInt(target.dataset.id)); break;
+      case 'del-drink': deleteDrink(parseInt(target.dataset.id)); break;
+      case 'feedback': submitFeedback(); break;
+      case 'scratch': 
+        openScratch(
+          parseInt(target.dataset.price), 
+          target.dataset.dishId ? parseInt(target.dataset.dishId) : null
+        ); 
+        break;
+      case 'close-scratch': closeScratch(); break;
+      case 'claim': claimDiscount(); break;
+      case 'alert-surprise': alert('Шеф-сюрприз добавлен! Ждите вашего заказа 🎉'); break;
+      case 'open-cart': openCart(); break;
+      case 'close-cart': closeCart(); break;
+      case 'qty': changeQty(parseInt(target.dataset.index), parseInt(target.dataset.delta)); break;
+      case 'cart-remove': removeCartItem(parseInt(target.dataset.index)); break;
+      case 'checkout': checkout(); break;
+      case 'open-dish-modal': openDishModal(target.dataset.type, parseInt(target.dataset.id)); break;
+      case 'close-dish-modal': closeDishModal(); break;
+      case 'dish-modal-qty': dishModalQtyChange(parseInt(target.dataset.delta)); break;
+      case 'dish-modal-add': dishModalAdd(); break;
+    }
+  });
+
+  const dishModal = document.getElementById('dish-modal');
+  if (dishModal) {
+    dishModal.addEventListener('click', (e) => {
+      if (e.target === dishModal) closeDishModal();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('dish-modal').classList.contains('visible')) closeDishModal();
+      else if (document.getElementById('cart-modal').classList.contains('visible')) closeCart();
+      else if (document.getElementById('scratch-overlay').classList.contains('visible')) closeScratch();
+    }
+  });
+});
+</script>
+
+<!-- ══════════════════════ СКРЭТЧ-ЛОТЕРЕЯ ══════════════════════ -->
+<div id="scratch-overlay">
+  <div class="scratch-wrapper">
+    <div class="scratch-hint">🎰 Вам выпал шанс на скидку!</div>
+    <div class="scratch-card">
+      <div class="scratch-prize">
+        <div class="prize-main">🎉 СКИДКА 15%</div>
+        <div class="prize-sub">на это блюдо дня</div>
+        <div class="prize-price" id="scratch-discounted-price">Цена со скидкой: — ₽</div>
+      </div>
+      <canvas id="scratch-canvas" width="320" height="200"></canvas>
+    </div>
+    <button id="claim-btn" data-action="claim">🎁 Забрать скидку</button>
+    <button class="scratch-close" data-action="close-scratch" aria-label="Закрыть">×</button>
+  </div>
+</div>
+
+</body>
+</html>
