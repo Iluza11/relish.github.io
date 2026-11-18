@@ -1574,7 +1574,7 @@
     }
     .scratch-close:hover { background: rgba(255,255,255,0.3); }
 
-    
+    /* --- КРАСИВЫЕ КАРТОЧКИ НАПИТКОВ --- */
     .drink-card {
       display: flex !important;
       align-items: center !important;
@@ -1600,13 +1600,14 @@
       margin-left: auto !important; /* Прижимает кнопки вправо на ПК */
     }
 
-  
+    /* Отменяем абсолютное позиционирование для кнопок внутри напитков (для ПК) */
     .drink-card .add-cart-btn, 
     .drink-card .details-btn {
       position: static !important;
       margin: 0 !important;
     }
 
+    /* На телефоне делаем кнопки как в блюдах: + сверху справа, Подробнее снизу справа */
     @media (max-width: 520px) {
       .drink-card {
         padding: 16px 50px 45px 16px !important;
@@ -1625,37 +1626,44 @@
         bottom: 12px !important;
         right: 12px !important;
       }
-   /
+      /* Убираем сжатие текста на телефоне */
       .drink-card { flex-wrap: nowrap !important; }
     }
     
-  
+    /* --- АДАПТИВНОСТЬ КАРТОЧЕК БЛЮД ДЛЯ МОБИЛЬНЫХ --- */
     @media (max-width: 520px) {
+      /* 1. Уменьшаем картинку, чтобы было больше места тексту */
       .dish-img {
         width: 80px !important;
         min-height: 100% !important;
       }
 
+      /* 2. Добавляем отступ снизу в текстовом блоке, чтобы кнопка "Подробнее" не наезжала на ингредиенты */
       .dish-info {
         padding: 12px 12px 48px 12px !important; 
       }
 
+      /* 3. Настраиваем шапку карточки (название и цена) */
       .dish-header {
         padding-right: 35px !important; /* Место для кнопки "+" */
         align-items: flex-start !important;
       }
+
+      /* 4. Запрещаем цене переноситься на новую строку и фиксируем её размер */
       .dish-price {
         font-size: 15px !important;
         white-space: nowrap !important;
         flex-shrink: 0 !important; /* Не даем цене сжиматься */
       }
 
+      /* 5. Название блюда может переноситься, если не влезает */
       .dish-name {
         font-size: 16px !important;
         padding-right: 10px !important;
         word-break: break-word !important;
       }
 
+      /* 6. Выравниваем кнопку "Подробнее" ровно в правый нижний угол */
       .dish-card .details-btn {
         bottom: 12px !important;
         right: 12px !important;
@@ -2335,7 +2343,7 @@ window.openDishModal = function(type, id) {
             <button class="dish-modal-qty-btn" data-action="dish-modal-qty" data-delta="1">+</button>
           </div>
           <button class="dish-modal-add-btn ${inCart ? 'in-cart' : ''}" data-action="dish-modal-add">
-            ${inCart ? '✓ Добавить ещё' : '🛒 Добавить в корзину'} · <span id="dish-modal-total">${totalPrice}</span> &nbsp;₽
+            ${inCart ? '✓ Добавить ещё' : '🛒 Добавить в корзину'} · <span id="dish-modal-total">${totalPrice}</span> ₽
           </button>
         </div>
       </div>
@@ -2551,7 +2559,7 @@ window.updateCartUI = function() {
   `}).join('');
 
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  totalEl.textContent = total + ' &nbsp;₽';
+  totalEl.textContent = total + ' ₽';
   footerEl.style.display = 'block';
 };
 
@@ -2568,7 +2576,7 @@ window.closeCart = function() {
 window.checkout = function() {
   if (cart.length === 0) return;
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  alert(`Заказ оформлен! 🎉\n\nПозиций: ${cart.reduce((s, i) => s + i.qty, 0)}\nИтого: ${total} &nbsp;₽\n\n Ожидайте, официант скоро подойдёт к вам.`);
+  alert(`Заказ оформлен! 🎉\n\nПозиций: ${cart.reduce((s, i) => s + i.qty, 0)}\nИтого: ${total} ₽\n\n Ожидайте, официант скоро подойдёт к вам.`);
   cart = [];
   updateCartUI();
   refreshMenuButtons();
