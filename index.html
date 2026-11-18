@@ -1573,6 +1573,104 @@
       z-index: 10;
     }
     .scratch-close:hover { background: rgba(255,255,255,0.3); }
+
+    /* --- КРАСИВЫЕ КАРТОЧКИ НАПИТКОВ --- */
+    .drink-card {
+      display: flex !important;
+      align-items: center !important;
+      gap: 14px !important;
+      border: 1.5px solid #eef2f0 !important;
+      border-radius: 12px !important;
+      padding: 14px 16px !important;
+      margin-bottom: 12px !important;
+      background: #fff !important;
+      position: relative !important;
+      flex-wrap: wrap !important;
+    }
+
+    .drink-info-block {
+      flex: 1 !important;
+      min-width: 100px !important;
+    }
+
+    .drink-actions {
+      display: flex !important;
+      gap: 8px !important;
+      align-items: center !important;
+      margin-left: auto !important; /* Прижимает кнопки вправо на ПК */
+    }
+
+    /* Отменяем абсолютное позиционирование для кнопок внутри напитков (для ПК) */
+    .drink-card .add-cart-btn, 
+    .drink-card .details-btn {
+      position: static !important;
+      margin: 0 !important;
+    }
+
+    /* На телефоне делаем кнопки как в блюдах: + сверху справа, Подробнее снизу справа */
+    @media (max-width: 520px) {
+      .drink-card {
+        padding: 16px 50px 45px 16px !important;
+        align-items: flex-start !important;
+      }
+      .drink-actions {
+        display: contents !important; /* Позволяет кнопкам привязаться к краям карточки */
+      }
+      .drink-card .add-cart-btn {
+        position: absolute !important;
+        top: 12px !important;
+        right: 12px !important;
+      }
+      .drink-card .details-btn {
+        position: absolute !important;
+        bottom: 12px !important;
+        right: 12px !important;
+      }
+      /* Убираем сжатие текста на телефоне */
+      .drink-card { flex-wrap: nowrap !important; }
+    }
+    
+    /* --- АДАПТИВНОСТЬ КАРТОЧЕК БЛЮД ДЛЯ МОБИЛЬНЫХ --- */
+    @media (max-width: 520px) {
+      /* 1. Уменьшаем картинку, чтобы было больше места тексту */
+      .dish-img {
+        width: 80px !important;
+        min-height: 100% !important;
+      }
+
+      /* 2. Добавляем отступ снизу в текстовом блоке, чтобы кнопка "Подробнее" не наезжала на ингредиенты */
+      .dish-info {
+        padding: 12px 12px 48px 12px !important; 
+      }
+
+      /* 3. Настраиваем шапку карточки (название и цена) */
+      .dish-header {
+        padding-right: 35px !important; /* Место для кнопки "+" */
+        align-items: flex-start !important;
+      }
+
+      /* 4. Запрещаем цене переноситься на новую строку и фиксируем её размер */
+      .dish-price {
+        font-size: 15px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important; /* Не даем цене сжиматься */
+      }
+
+      /* 5. Название блюда может переноситься, если не влезает */
+      .dish-name {
+        font-size: 16px !important;
+        padding-right: 10px !important;
+        word-break: break-word !important;
+      }
+
+      /* 6. Выравниваем кнопку "Подробнее" ровно в правый нижний угол */
+      .dish-card .details-btn {
+        bottom: 12px !important;
+        right: 12px !important;
+      }
+    }
+
+
   </style>
 </head>
 <body>
@@ -2178,9 +2276,9 @@ window.openDishModal = function(type, id) {
       <div class="dish-modal-header">
         <div class="dish-modal-name">${item.name}</div>
         <div class="dish-modal-price">
-          ${hasDiscount ? `<span class="dish-price-old">${item.price} ₽</span>` : ''}
-          ${actualPrice} ₽
-        </div>
+  ${hasDiscount ? `<span class="dish-price-old">${item.price}&nbsp;₽</span>` : ''}
+  ${actualPrice}&nbsp;₽
+</div>
       </div>
       <div class="dish-modal-tags">
         ${type === 'dish' ? `
@@ -2245,7 +2343,7 @@ window.openDishModal = function(type, id) {
             <button class="dish-modal-qty-btn" data-action="dish-modal-qty" data-delta="1">+</button>
           </div>
           <button class="dish-modal-add-btn ${inCart ? 'in-cart' : ''}" data-action="dish-modal-add">
-            ${inCart ? '✓ Добавить ещё' : '🛒 Добавить в корзину'} · <span id="dish-modal-total">${totalPrice}</span> ₽
+            ${inCart ? '✓ Добавить ещё' : '🛒 Добавить в корзину'} · <span id="dish-modal-total">${totalPrice}</span> &nbsp;₽
           </button>
         </div>
       </div>
@@ -2327,9 +2425,19 @@ window.goToResults = function() {
 };
 
 window.openAdmin = function() {
-  document.getElementById('guest-app').style.display = 'none';
-  document.getElementById('admin-panel').classList.add('active');
-  renderAdminLists();
+  // Запрашиваем пароль
+  const password = prompt("Введите пароль для входа в панель администратора:");
+  
+  // ВАЖНО: Здесь задается пароль. Можете поменять "admin123" на любой другой.
+  if (password === "123456") {
+    // Если пароль верный — открываем админку
+    document.getElementById('guest-app').style.display = 'none';
+    document.getElementById('admin-panel').classList.add('active');
+    renderAdminLists();
+  } else if (password !== null) {
+    // Если пароль неверный (и пользователь не нажал "Отмена")
+    alert("Неверный пароль! Доступ запрещен.");
+  }
 };
 
 window.closeAdmin = function() {
@@ -2436,8 +2544,8 @@ window.updateCartUI = function() {
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-price">
-          ${hasDiscount ? `<span class="cart-item-price-old">${originalPrice} ₽</span>` : ''}
-          <span>${item.price} ₽</span>
+          ${hasDiscount ? `<span class="cart-item-price-old">${originalPrice} &nbsp;₽</span>` : ''}
+          <span>${item.price} &nbsp;₽</span>
           ${hasDiscount ? `<span class="cart-item-discount">-${discountPercent}%</span>` : ''}
         </div>
       </div>
@@ -2451,7 +2559,7 @@ window.updateCartUI = function() {
   `}).join('');
 
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  totalEl.textContent = total + ' ₽';
+  totalEl.textContent = total + ' &nbsp;₽';
   footerEl.style.display = 'block';
 };
 
@@ -2468,7 +2576,7 @@ window.closeCart = function() {
 window.checkout = function() {
   if (cart.length === 0) return;
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  alert(`Заказ оформлен! 🎉\n\nПозиций: ${cart.reduce((s, i) => s + i.qty, 0)}\nИтого: ${total} ₽\n\nОфициант скоро подойдёт.`);
+  alert(`Заказ оформлен! 🎉\n\nПозиций: ${cart.reduce((s, i) => s + i.qty, 0)}\nИтого: ${total} &nbsp;₽\n\n Ожидайте, официант скоро подойдёт к вам.`);
   cart = [];
   updateCartUI();
   refreshMenuButtons();
@@ -2511,7 +2619,7 @@ window.renderMenu = function() {
               <div class="dish-header">
                 <div class="dish-name">${d.name} ${d.special ? '⭐' : ''}</div>
                 <div class="dish-price">
-                  ${hasDiscount ? `<span class="dish-price-old">${d.price} ₽</span>` : ''}
+                  ${hasDiscount ? `<span class="dish-price-old">${d.price} &nbsp;₽</span>` : ''}
                   ${hasDiscount ? `<span class="discount-badge">-${discountPercent}%</span>` : ''}
                   ${actualPrice} ₽
                 </div>
@@ -2537,17 +2645,18 @@ window.renderMenu = function() {
       return `
         <div class="drink-card">
           <div class="drink-icon">${photoHTML(d.photo)}</div>
-          <div style="flex:1;">
+          <div class="drink-info-block">
             <div class="drink-name">${d.name}</div>
-            <div class="drink-price">${d.price} ₽ · ${d.temp}</div>
+            <div class="drink-price">${d.price}&nbsp;₽ · ${d.temp}</div>
           </div>
-          <button class="details-btn" data-action="open-dish-modal" data-type="drink" data-id="${d.id}" style="position:static;margin-right:8px;">Подробнее</button>
-          <button class="add-cart-btn ${inCart ? 'added remove-mode' : ''}" 
-                  data-action="add-cart" data-type="drink" data-id="${d.id}"
-                  style="position:static;"
-                  title="${inCart ? 'Удалить из корзины' : 'Добавить в корзину'}">
-            ${inCart ? '×' : '+'}
-          </button>
+          <div class="drink-actions">
+            <button class="details-btn" data-action="open-dish-modal" data-type="drink" data-id="${d.id}">Подробнее</button>
+            <button class="add-cart-btn ${inCart ? 'added remove-mode' : ''}" 
+                    data-action="add-cart" data-type="drink" data-id="${d.id}"
+                    title="${inCart ? 'Удалить из корзины' : 'Добавить в корзину'}">
+              ${inCart ? '×' : '+'}
+            </button>
+          </div>
         </div>
       `;
     }).join('');
@@ -2635,10 +2744,14 @@ function renderResults({ dishes: top3, drinks: top2 }) {
           <div class="dish-info">
             <div class="dish-header">
               <div class="dish-name">${dish.name} ${dish.special ? '⭐' : ''}</div>
-              <div class="dish-price">
-                ${hasDiscount ? `<span class="dish-price-old">${dish.price} ₽</span>` : ''}
-                ${hasDiscount ? `<span class="discount-badge">-${discountPercent}%</span>` : ''}
-                ${actualPrice} ₽
+              <div class="dish-price" style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; margin-right: 35px;">
+                ${hasDiscount ? `
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <span class="dish-price-old" style="font-size: 11px; margin-right: 0;">${dish.price}&nbsp;₽</span>
+                    <span class="discount-badge" style="margin-right: 0; font-size: 9px; padding: 1px 5px;">-${discountPercent}%</span>
+                  </div>
+                ` : ''}
+                <span style="font-size: 16px;">${actualPrice}&nbsp;₽</span>
               </div>
             </div>
             <div class="dish-meta">
@@ -2668,18 +2781,19 @@ function renderResults({ dishes: top3, drinks: top2 }) {
     html += `
       <div class="drink-card">
         <div class="drink-icon">${photoHTML(drink.photo)}</div>
-        <div style="flex:1;">
+        <div class="drink-info-block">
           <div class="drink-name">${drink.name}</div>
-          <div class="drink-price">${drink.price} ₽</div>
+          <div class="drink-price">${drink.price}&nbsp;₽</div>
         </div>
-        <div class="drink-match">${drink.match}%</div>
-        <button class="details-btn" data-action="open-dish-modal" data-type="drink" data-id="${drink.id}" style="position:static;margin-left:8px;">Подробнее</button>
-        <button class="add-cart-btn ${inCart ? 'added remove-mode' : ''}" 
-                data-action="add-cart" data-type="drink" data-id="${drink.id}"
-                style="position:static;margin-left:8px;"
-                title="${inCart ? 'Удалить из корзины' : 'Добавить в корзину'}">
-          ${inCart ? '×' : '+'}
-        </button>
+        <div class="drink-match" style="margin-right: 10px;">${drink.match}%</div>
+        <div class="drink-actions">
+          <button class="details-btn" data-action="open-dish-modal" data-type="drink" data-id="${drink.id}">Подробнее →</button>
+          <button class="add-cart-btn ${inCart ? 'added remove-mode' : ''}" 
+                  data-action="add-cart" data-type="drink" data-id="${drink.id}"
+                  title="${inCart ? 'Удалить из корзины' : 'Добавить в корзину'}">
+            ${inCart ? '×' : '+'}
+          </button>
+        </div>
       </div>`;
   });
 
@@ -2881,7 +2995,7 @@ function renderAdminLists() {
       <div class="admin-item-thumb">${photoHTML(d.photo)}</div>
       <div class="admin-item-info">
         <div class="admin-item-name">${d.name}</div>
-        <div class="admin-item-meta">${d.price} ₽ · ${d.time} · Острота: ${d.spice} · ${d.sauce}</div>
+        <div class="admin-item-meta">${d.price} &nbsp;₽ · ${d.time} · Острота: ${d.spice} · ${d.sauce}</div>
         ${d.special ? '<span class="admin-item-badge">⭐ Блюдо дня</span>' : ''}
         ${d.special && d.discount ? `<span class="admin-item-badge discount">🎁 -${d.discount}%</span>` : ''}
       </div>
@@ -2897,7 +3011,7 @@ function renderAdminLists() {
       <div class="admin-item-thumb">${photoHTML(d.photo)}</div>
       <div class="admin-item-info">
         <div class="admin-item-name">${d.name}</div>
-        <div class="admin-item-meta">${d.price} ₽ · ${d.temp} · ${d.alcohol ? 'Алкоголь' : 'Безалкогольный'}</div>
+        <div class="admin-item-meta">${d.price} &nbsp;₽ · ${d.temp} · ${d.alcohol ? 'Алкоголь' : 'Безалкогольный'}</div>
       </div>
       <div class="admin-actions">
         <button class="btn-edit" data-action="edit-drink" data-id="${d.id}">Ред.</button>
